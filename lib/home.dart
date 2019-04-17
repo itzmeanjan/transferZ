@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+import 'service_advertising.dart';
+import 'service_discovery.dart';
 
 class MyHome extends StatefulWidget {
   @override
   _MyHomeState createState() => _MyHomeState();
 }
 
-class _MyHomeState extends State<MyHome> {
+class _MyHomeState extends State<MyHome> implements FoundServiceCallBack {
   MethodChannel _methodChannel;
   String _methodChannelName;
   bool _isPermissionAvailable;
   String _homeDir;
+  String _initText;
+  List<String> _filesToBeTransferred;
 
   @override
   void initState() {
     super.initState();
-    _isPermissionAvailable = false;
+    _filesToBeTransferred = [];
     _methodChannelName = 'io.github.itzmeanjan.transferz';
     _methodChannel = MethodChannel(_methodChannelName);
+    _isPermissionAvailable = false;
+    _initText = 'Storage Access Permission Required';
     isPermissionAvailable().then((val) {
       if (!val)
         requestPermission().then((res) {
@@ -66,6 +72,19 @@ class _MyHomeState extends State<MyHome> {
         .then((val) => List<String>.from(val));
   }
 
+  floatingActionButtonCallBack() {
+    requestPermission().then((res) {
+      setState(() {
+        _isPermissionAvailable = res;
+      });
+      if (res)
+        getHomeDir().then((value) {
+          _homeDir = value;
+          createDirectory(_homeDir);
+        });
+    });
+  }
+
   createDirectory(String dirName) {
     Directory directory = Directory(dirName);
     directory.exists().then((val) {
@@ -75,6 +94,11 @@ class _MyHomeState extends State<MyHome> {
         });
       }
     });
+  }
+
+  @override
+  foundService(String host, int port) {
+    print('[+]Target server $host:$port');
   }
 
   @override
@@ -94,10 +118,9 @@ class _MyHomeState extends State<MyHome> {
                   Icon(
                     Icons.sentiment_dissatisfied,
                     size: 100,
-                    color: Colors.white,
                   ),
                   Text(
-                    'Storage Access Permission Required',
+                    _initText,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
@@ -107,17 +130,11 @@ class _MyHomeState extends State<MyHome> {
               ),
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                requestPermission().then((res) {
-                  setState(() {
-                    _isPermissionAvailable = res;
-                  });
-                });
-              },
+              onPressed: floatingActionButtonCallBack,
               child: Icon(Icons.sd_storage),
               tooltip: 'Grant Storage Access',
               elevation: 16,
-              backgroundColor: Colors.tealAccent,
+              backgroundColor: Colors.teal,
             ),
           )
         : Scaffold(
@@ -146,9 +163,13 @@ class _MyHomeState extends State<MyHome> {
                         color: Colors.cyan,
                       ),
                       onPressed: () {
-                        initFileChooser().then((filePaths) {
-                          filePaths.forEach((file) => print(file));
+                        var advertiseService = AdvertiseService(8000);
+                        advertiseService.advertise();
+                        /*initFileChooser().then((filePaths) {
+                          filePaths.forEach(
+                              (file) => _filesToBeTransferred.add(file));
                         });
+                        print(_filesToBeTransferred);*/
                       },
                       tooltip: 'Send File',
                     ),
@@ -159,7 +180,15 @@ class _MyHomeState extends State<MyHome> {
                         Icons.file_download,
                         color: Colors.teal,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        var discoverService = DiscoverService(
+                            0,
+                            'io.github.itzmeanjan.transferz',
+                            '255.255.255.255',
+                            8000,
+                            this);
+                        discoverService.discoverAndReport();
+                      },
                       tooltip: 'Receive File',
                     ),
                   ],
