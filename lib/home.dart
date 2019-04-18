@@ -71,6 +71,11 @@ class _MyHomeState extends State<MyHome> {
         .then((val) => List<String>.from(val));
   }
 
+  Future<void> showToast(String message, String duration) async {
+    await _methodChannel.invokeMethod('showToast',
+        <String, String>{'message': message, 'duration': duration});
+  }
+
   floatingActionButtonCallBack() {
     requestPermission().then((res) {
       setState(() {
@@ -94,24 +99,6 @@ class _MyHomeState extends State<MyHome> {
       }
     });
   }
-/*
-  @override
-  foundService(String host, int port) {
-    print('[+]Target server $host:$port');
-    setState(() {
-      _peerInfoHolder._targetIP = host;
-      _peerInfoHolder._targetPort = port;
-    });
-  }
-
-  @override
-  foundClient(String host) {
-    print('interested client $host');
-    if (!_peerInfoHolder._targetPeers.contains(host))
-      setState(() {
-        _peerInfoHolder._targetPeers.add(host);
-      });
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +163,10 @@ class _MyHomeState extends State<MyHome> {
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => PeerFinder(type: 'send')));
+                            builder: (context) => PeerFinder(
+                                  type: 'send',
+                                  methodChannel: _methodChannel,
+                                )));
                         /*initFileChooser().then((filePaths) {
                           filePaths.forEach(
                               (file) => _filesToBeTransferred.add(file));
@@ -194,7 +184,10 @@ class _MyHomeState extends State<MyHome> {
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => PeerFinder(type: 'receive')));
+                            builder: (context) => PeerFinder(
+                                  type: 'receive',
+                                  methodChannel: _methodChannel,
+                                )));
                       },
                       tooltip: 'Receive File',
                     ),

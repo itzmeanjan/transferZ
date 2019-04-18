@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.Gravity
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -53,6 +55,9 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     initFileChooser()
+                }
+                "showToast" -> {
+                    Toast.makeText(this, methodCall.argument<String>("message"), if (methodCall.argument<String>("duration") == "long") Toast.LENGTH_LONG else Toast.LENGTH_SHORT)?.show()
                 }
                 else -> {
                     result.notImplemented()

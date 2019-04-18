@@ -6,7 +6,7 @@ class AdvertiseService {
   bool isStopped = true;
   FoundClientCallBack _foundClientCallBack;
   RawDatagramSocket _rawDatagramSocket;
-  List<String> _clients = [];
+  Map<String, int> _clients = {};
   AdvertiseService(this._port, this._foundClientCallBack);
   advertise() async {
     _rawDatagramSocket =
@@ -17,10 +17,9 @@ class AdvertiseService {
       if (event == RawSocketEvent.read) {
         Datagram datagram = _rawDatagramSocket.receive();
         if (datagram != null) {
-          if (!_clients.contains(datagram.address.host)) {
-            _clients.add(datagram.address.host);
-            _foundClientCallBack.foundClient(datagram.address.host);
-          }
+          _clients[datagram.address.host] = datagram.port;
+          _foundClientCallBack.foundClient(
+              datagram.address.host, datagram.port);
           _rawDatagramSocket.send(
               datagram.data, datagram.address, datagram.port);
         }
@@ -28,15 +27,14 @@ class AdvertiseService {
     });
   }
 
-  List<String> stop() {
+  stop() {
     if (_rawDatagramSocket != null) {
       _rawDatagramSocket.close();
       isStopped = true;
     }
-    return _clients;
   }
 }
 
 abstract class FoundClientCallBack {
-  foundClient(String host);
+  foundClient(String host, int port);
 }

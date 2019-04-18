@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'service_advertising.dart';
 import 'service_discovery.dart';
+import 'package:flutter/services.dart';
 
 class PeerFinder extends StatefulWidget {
   final String type;
-  PeerFinder({Key key, @required this.type}) : super(key: key);
+  final MethodChannel methodChannel;
+
+  PeerFinder({Key key, @required this.type, @required this.methodChannel})
+      : super(key: key);
+
   @override
   _PeerFinderState createState() => _PeerFinderState();
 }
@@ -12,22 +17,20 @@ class PeerFinder extends StatefulWidget {
 class _PeerFinderState extends State<PeerFinder>
     implements FoundClientCallBack, FoundServiceCallBack {
   PeerInfoHolder _peerInfoHolder;
-  bool _foundServer;
   AdvertiseService _advertiseService;
   DiscoverService _discoverService;
 
   @override
   void initState() {
     super.initState();
-    _foundServer = false;
     _peerInfoHolder = PeerInfoHolder(widget.type);
-    if (widget.type == 'receive') {
+    if (widget.type == 'send') {
+      _advertiseService = AdvertiseService(8000, this);
+      _advertiseService.advertise();
+    } else {
       _discoverService = DiscoverService(
           0, 'io.github.itzmeanjan.transferz', '255.255.255.255', 8000, this);
       _discoverService.discoverAndReport();
-    } else {
-      _advertiseService = AdvertiseService(8000, this);
-      _advertiseService.advertise();
     }
   }
 
@@ -38,31 +41,57 @@ class _PeerFinderState extends State<PeerFinder>
   }
 
   @override
-  foundClient(String host) {
-    if (!_peerInfoHolder._targetPeers.contains(host))
-      setState(() {
-        _peerInfoHolder._targetPeers.add(host);
-      });
+  foundClient(String host, int port) {
+    setState(() {
+      _peerInfoHolder._peers[host] = port;
+      _peerInfoHolder._isPeerSelected[host] = false;
+    });
   }
 
   @override
   foundService(String host, int port) {
-    _peerInfoHolder._targetIP = host;
-    _peerInfoHolder._targetPort = port;
     setState(() {
-      _foundServer = true;
+      _peerInfoHolder._peers[host] = port;
+      _peerInfoHolder._isPeerSelected[host] = false;
     });
+  }
+
+  Future<void> showToast(String message, String duration) async {
+    return await widget.methodChannel.invokeMethod('showToast',
+        <String, String>{'message': message, 'duration': duration});
+  }
+
+  bool checkIfAtLeastOneIsSelected() {
+    int count = 0;
+    _peerInfoHolder._isPeerSelected.forEach((key, val) {
+      count += val ? 1 : 0;
+    });
+    return count == 0 ? false : true;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('transferZ'),
+        title: Text('Finding Peers ...'),
         backgroundColor: Colors.tealAccent,
         elevation: 16,
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Send Files',
+            icon: Icon(
+              Icons.send,
+              color: Colors.black,
+            ),
+            onPressed: checkIfAtLeastOneIsSelected() ? () {} : null,
+          ),
+        ],
       ),
       body: Container(
+        padding: EdgeInsets.only(
+          top: 12,
+          bottom: 12,
+        ),
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
@@ -71,150 +100,119 @@ class _PeerFinderState extends State<PeerFinder>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         )),
-        child: Center(
-          child: widget.type == 'send'
-              ? _peerInfoHolder._targetPeers.length == 0
-                  ? CircularProgressIndicator(
-                      backgroundColor: Colors.white,
-                    )
-                  : Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Text(
-                            'Peer(s)',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              fontStyle: FontStyle.italic,
-                              letterSpacing: 3,
-                              shadows: <Shadow>[
-                                Shadow(
-                                  color: Colors.black38,
-                                  offset: Offset(1.6, 1.8),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height / 2,
-                          width: MediaQuery.of(context).size.width,
-                          child: ListView.builder(
-                            itemBuilder: (context, index) {
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 10,
-                                        right: 4,
-                                      ),
-                                      child: Text(
-                                        _peerInfoHolder._targetPeers[index],
-                                      ),
-                                    ),
-                                    flex: 1,
-                                  ),
-                                  IconButton(
-                                    tooltip: 'Connect to Peer',
-                                    icon: Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                    ),
-                                    onPressed: () {},
-                                  ),
-                                  IconButton(
-                                    tooltip: 'Don\'t Connect to Peer',
-                                    icon: Icon(
-                                      Icons.cancel,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () {},
-                                  ),
-                                ],
-                              );
-                            },
-                            itemCount: _peerInfoHolder._targetPeers.length,
-                          ),
-                        ),
-                      ],
-                      mainAxisSize: MainAxisSize.min,
-                    )
-              : !_foundServer
-                  ? CircularProgressIndicator(
-                      backgroundColor: Colors.white,
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Text(
-                            'Peer(s)',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              fontStyle: FontStyle.italic,
-                              letterSpacing: 3,
-                              shadows: <Shadow>[
-                                Shadow(
-                                  color: Colors.black38,
-                                  offset: Offset(1.6, 1.8),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: 10,
-                                  right: 4,
-                                ),
-                                child: Text(_peerInfoHolder._targetIP),
+        child: _peerInfoHolder._peers.length == 0
+            ? Center(
+                child: CircularProgressIndicator(
+                backgroundColor: Colors.white,
+              ))
+            : ListView.builder(
+                padding: EdgeInsets.only(left: 8, right: 8),
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: 12, bottom: 12),
+                    child: Card(
+                      color: _peerInfoHolder._isPeerSelected[_peerInfoHolder
+                                  ._peers.keys
+                                  .toList()[index]] ==
+                              true
+                          ? Colors.lightGreen
+                          : Colors.redAccent,
+                      elevation: 12,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: 10,
+                                right: 4,
                               ),
-                              flex: 1,
-                            ),
-                            IconButton(
-                              tooltip: 'Connect to Peer',
-                              icon: Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
+                              child: Text(
+                                '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
                               ),
-                              onPressed: () {},
                             ),
-                            IconButton(
-                              tooltip: 'Don\'t Connect to Peer',
-                              icon: Icon(
-                                Icons.cancel,
-                                color: Colors.red,
-                              ),
-                              onPressed: () {},
+                            flex: 1,
+                          ),
+                          IconButton(
+                            tooltip: 'Connect to Peer',
+                            disabledColor: Colors.white,
+                            color: Colors.green,
+                            icon: Icon(
+                              Icons.check_circle,
                             ),
-                          ],
-                        ),
-                      ],
+                            onPressed: _peerInfoHolder._isPeerSelected[
+                                        _peerInfoHolder._peers.keys
+                                            .toList()[index]] ==
+                                    false
+                                ? () {
+                                    if (widget.type == 'send') {
+                                      setState(() {
+                                        _peerInfoHolder._isPeerSelected[
+                                            _peerInfoHolder._peers.keys
+                                                .toList()[index]] = true;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _peerInfoHolder._isPeerSelected
+                                            .forEach((key, val) {
+                                          _peerInfoHolder._isPeerSelected[key] =
+                                              _peerInfoHolder._peers.keys
+                                                          .toList()[index] ==
+                                                      key
+                                                  ? true
+                                                  : false;
+                                        });
+                                      });
+                                    }
+                                    showToast(
+                                        "Selected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                        "short");
+                                  }
+                                : null,
+                          ),
+                          IconButton(
+                            tooltip: 'Don\'t Connect to Peer',
+                            disabledColor: Colors.white,
+                            color: Colors.red,
+                            icon: Icon(
+                              Icons.cancel,
+                            ),
+                            onPressed: _peerInfoHolder._isPeerSelected[
+                                        _peerInfoHolder._peers.keys
+                                            .toList()[index]] ==
+                                    true
+                                ? () {
+                                    setState(() {
+                                      _peerInfoHolder._isPeerSelected[
+                                          _peerInfoHolder._peers.keys
+                                              .toList()[index]] = false;
+                                    });
+                                    showToast(
+                                        "Unselected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                        "short");
+                                  }
+                                : null,
+                          ),
+                        ],
+                      ),
                     ),
-        ),
+                  );
+                },
+                itemCount: _peerInfoHolder._peers.length,
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: widget.type == 'send'
             ? () {
-                _peerInfoHolder._targetPeers = [];
-                if (_advertiseService.isStopped) {
-                  _advertiseService = AdvertiseService(8000, this);
-                  _advertiseService.advertise();
-                }
+                setState(() {
+                  _peerInfoHolder._peers = {};
+                });
+                if (!_advertiseService.isStopped) _advertiseService.stop();
+                _advertiseService = AdvertiseService(8000, this);
+                _advertiseService.advertise();
               }
             : () {
                 setState(() {
-                  _foundServer = false;
+                  _peerInfoHolder._peers = {};
                 });
                 _discoverService.discoverAndReport();
               },
@@ -229,8 +227,12 @@ class _PeerFinderState extends State<PeerFinder>
 
 class PeerInfoHolder {
   String type;
-  PeerInfoHolder(this.type);
-  String _targetIP;
-  int _targetPort;
-  List<String> _targetPeers = [];
+
+  PeerInfoHolder(this.type) {
+    _peers = {};
+    _isPeerSelected = {};
+  }
+
+  Map<String, int> _peers;
+  Map<String, bool> _isPeerSelected;
 }
