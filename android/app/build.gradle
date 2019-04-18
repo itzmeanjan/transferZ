@@ -41,6 +41,7 @@ android {
         versionCode 1
         versionName '1.0.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled = false
     }
     buildTypes {
         release {
@@ -60,7 +61,7 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13-beta-2'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'androidx.core:core:1.1.0-alpha05'

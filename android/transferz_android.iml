@@ -57,5 +57,6 @@
     <orderEntry type="library" name="Gradle: androidx.test:runner:1.1.0-alpha3@aar" level="project" />
     <orderEntry type="library" name="Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: androidx.concurrent:concurrent-futures:1.0.0-alpha02@jar" level="project" />
+    <orderEntry type="library" name="Gradle: junit:junit:4.13-beta-2@jar" level="project" />
   </component>
 </module>

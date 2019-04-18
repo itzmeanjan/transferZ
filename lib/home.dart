@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'service_advertising.dart';
-import 'service_discovery.dart';
+import 'peer_finder.dart';
 
 class MyHome extends StatefulWidget {
   @override
   _MyHomeState createState() => _MyHomeState();
 }
 
-class _MyHomeState extends State<MyHome> implements FoundServiceCallBack {
+class _MyHomeState extends State<MyHome> {
   MethodChannel _methodChannel;
   String _methodChannelName;
   bool _isPermissionAvailable;
@@ -95,11 +94,24 @@ class _MyHomeState extends State<MyHome> implements FoundServiceCallBack {
       }
     });
   }
-
+/*
   @override
   foundService(String host, int port) {
     print('[+]Target server $host:$port');
+    setState(() {
+      _peerInfoHolder._targetIP = host;
+      _peerInfoHolder._targetPort = port;
+    });
   }
+
+  @override
+  foundClient(String host) {
+    print('interested client $host');
+    if (!_peerInfoHolder._targetPeers.contains(host))
+      setState(() {
+        _peerInfoHolder._targetPeers.add(host);
+      });
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -163,8 +175,8 @@ class _MyHomeState extends State<MyHome> implements FoundServiceCallBack {
                         color: Colors.cyan,
                       ),
                       onPressed: () {
-                        var advertiseService = AdvertiseService(8000);
-                        advertiseService.advertise();
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => PeerFinder(type: 'send')));
                         /*initFileChooser().then((filePaths) {
                           filePaths.forEach(
                               (file) => _filesToBeTransferred.add(file));
@@ -181,13 +193,8 @@ class _MyHomeState extends State<MyHome> implements FoundServiceCallBack {
                         color: Colors.teal,
                       ),
                       onPressed: () {
-                        var discoverService = DiscoverService(
-                            0,
-                            'io.github.itzmeanjan.transferz',
-                            '255.255.255.255',
-                            8000,
-                            this);
-                        discoverService.discoverAndReport();
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => PeerFinder(type: 'receive')));
                       },
                       tooltip: 'Receive File',
                     ),

@@ -17,7 +17,8 @@
         <option name="ALLOW_USER_CONFIGURATION" value="false" />
         <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
         <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
-        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res;file://$MODULE_DIR$/../../build/app/generated/res/rs/debug;file://$MODULE_DIR$/../../build/app/generated/res/resValues/debug" />
+        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res;file://$MODULE_DIR$/../../build/app/generated/res/resValues/debug" />
+        <option name="TEST_RES_FOLDERS_RELATIVE_PATH" value="" />
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
@@ -26,7 +27,7 @@
         <compilerSettings />
         <compilerArguments>
           <option name="destination" value="$MODULE_DIR$/../../build/app/tmp/kotlin-classes/debug" />
-          <option name="classpath" value="$MODULE_DIR$/../../build/app/intermediates/flutter/flutter-x86.jar:/home/anjan/.gradle/caches/transforms-1/files-1.1/flutter.jar/7d2e39f1f1b24502de328f297a235b0d/jetified-flutter.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.3.30/bf0edcf669e446e0d903a0681190d1e3df969ac4/kotlin-stdlib-jdk7-1.3.30.jar:/home/anjan/.gradle/caches/transforms-1/files-1.1/core-1.1.0-alpha05.aar/459aa550f4cbd41a927e80addbc88ee4/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.3.30/9ea98e65c246d34de9af59c104ad9bdea4908ee/kotlin-stdlib-1.3.30.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.concurrent/concurrent-futures/1.0.0-alpha02/b4a4a1ada5a1ba3f8df9f9e6384a0a404ccc48cb/concurrent-futures-1.0.0-alpha02.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/com.google.guava/listenablefuture/1.0/c949a840a6acbc5268d088e47b04177bf90b3cad/listenablefuture-1.0.jar:/home/anjan/.gradle/caches/transforms-1/files-1.1/versionedparcelable-1.1.0-alpha02.aar/ae9ba1a6e7b8e17d4f23423caa673dd3/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.collection/collection/1.0.0/42858b26cafdaa69b6149f45dfc2894007bc2c7a/collection-1.0.0.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.annotation/annotation/1.1.0-alpha02/11d7b1518f8e1044319820cb2568fd2f59818b26/annotation-1.1.0-alpha02.jar:/home/anjan/.gradle/caches/transforms-1/files-1.1/lifecycle-runtime-2.0.0.aar/d69b9e0764d37511ec3daca6967a987c/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.30/989a125fdb6e4d0d75a016032e03e1e3b57a13d/kotlin-stdlib-common-1.3.30.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common/2.0.0/e070ffae07452331bc5684734fce6831d531785c/lifecycle-common-2.0.0.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.arch.core/core-common/2.0.0/bb21b9a11761451b51624ac428d1f1bb5deeac38/core-common-2.0.0.jar:/home/anjan/Android/Sdk/platforms/android-28/android.jar" />
+          <option name="classpath" value="$MODULE_DIR$/../../build/app/intermediates/flutter/flutter-x86.jar:/home/anjan/.gradle/caches/transforms-2/files-2.1/a24c39a2167ccc024092d783c83d5256/jetified-flutter.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.3.30/bf0edcf669e446e0d903a0681190d1e3df969ac4/kotlin-stdlib-jdk7-1.3.30.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.3.30/9ea98e65c246d34de9af59c104ad9bdea4908ee/kotlin-stdlib-1.3.30.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.30/989a125fdb6e4d0d75a016032e03e1e3b57a13d/kotlin-stdlib-common-1.3.30.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/home/anjan/.gradle/caches/transforms-2/files-2.1/29cfc524803280d225237e5d2362a181/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.concurrent/concurrent-futures/1.0.0-alpha02/b4a4a1ada5a1ba3f8df9f9e6384a0a404ccc48cb/concurrent-futures-1.0.0-alpha02.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/com.google.guava/listenablefuture/1.0/c949a840a6acbc5268d088e47b04177bf90b3cad/listenablefuture-1.0.jar:/home/anjan/.gradle/caches/transforms-2/files-2.1/4e3aa2164f709b70652e340a9a05be8f/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.collection/collection/1.0.0/42858b26cafdaa69b6149f45dfc2894007bc2c7a/collection-1.0.0.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.annotation/annotation/1.1.0-alpha02/11d7b1518f8e1044319820cb2568fd2f59818b26/annotation-1.1.0-alpha02.jar:/home/anjan/.gradle/caches/transforms-2/files-2.1/f7caf430baf9166d92f4b062c81688b9/jars/classes.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common/2.0.0/e070ffae07452331bc5684734fce6831d531785c/lifecycle-common-2.0.0.jar:/home/anjan/.gradle/caches/modules-2/files-2.1/androidx.arch.core/core-common/2.0.0/bb21b9a11761451b51624ac428d1f1bb5deeac38/core-common-2.0.0.jar:/home/anjan/Android/Sdk/platforms/android-28/android.jar:/home/anjan/Android/Sdk/build-tools/28.0.3/core-lambda-stubs.jar" />
           <option name="noStdlib" value="true" />
           <option name="noReflect" value="true" />
           <option name="moduleName" value="app_debug" />
@@ -119,14 +120,18 @@
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/bundle_manifest" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/check_manifest_result" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/compatible_screen_manifest" />
+      <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/duplicate_classes_check" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/flutter" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/instant_app_manifest" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/instant_run_merged_manifests" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/javac" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/jniLibs" />
+      <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/lint_jar" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_assets" />
+      <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_jni_libs" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_manifests" />
+      <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_shaders" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/metadata_feature_manifest" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/prebuild" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/processed_res" />
@@ -146,6 +151,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.test.espresso:espresso-idling-resource:3.1.0-alpha3@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.test:runner:1.1.0-alpha3@aar" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: junit:junit:4.13-beta-2@jar" level="project" />
     <orderEntry type="library" name="Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.test:monitor:1.1.0-alpha3@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: com.squareup:javawriter:2.1.1@jar" level="project" />
