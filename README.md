@@ -1,4 +1,4 @@
 # transferz
 
-A simple Android Application built with &lt;3 using Flutter, for transferring files between devices.
+A simple Android Application built with :heart: using Flutter, for transferring files between devices.
 
