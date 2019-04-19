@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'peer_finder.dart';
+import 'peer_finder.dart' show PeerFinder;
 
 class MyHome extends StatefulWidget {
   @override
@@ -14,12 +14,10 @@ class _MyHomeState extends State<MyHome> {
   bool _isPermissionAvailable;
   String _homeDir;
   String _initText;
-  List<String> _filesToBeTransferred;
 
   @override
   void initState() {
     super.initState();
-    _filesToBeTransferred = [];
     _methodChannelName = 'io.github.itzmeanjan.transferz';
     _methodChannel = MethodChannel(_methodChannelName);
     _isPermissionAvailable = false;
@@ -167,11 +165,6 @@ class _MyHomeState extends State<MyHome> {
                                   type: 'send',
                                   methodChannel: _methodChannel,
                                 )));
-                        /*initFileChooser().then((filePaths) {
-                          filePaths.forEach(
-                              (file) => _filesToBeTransferred.add(file));
-                        });
-                        print(_filesToBeTransferred);*/
                       },
                       tooltip: 'Send File',
                     ),

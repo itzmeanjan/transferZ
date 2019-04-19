@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'service_advertising.dart';
 import 'service_discovery.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show MethodChannel;
+import 'transfer.dart' show Sender;
 
 class PeerFinder extends StatefulWidget {
   final String type;
@@ -78,12 +79,19 @@ class _PeerFinderState extends State<PeerFinder>
         elevation: 16,
         actions: <Widget>[
           IconButton(
-            tooltip: 'Send Files',
+            tooltip: 'Go for File Transfer',
             icon: Icon(
               Icons.send,
               color: Colors.black,
             ),
-            onPressed: checkIfAtLeastOneIsSelected() ? () {} : null,
+            onPressed: checkIfAtLeastOneIsSelected()
+                ? () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => Sender(
+                            methodChannel: widget.methodChannel,
+                            peerInfoHolder: _peerInfoHolder)));
+                  }
+                : null,
           ),
         ],
       ),
@@ -235,4 +243,7 @@ class PeerInfoHolder {
 
   Map<String, int> _peers;
   Map<String, bool> _isPeerSelected;
+
+  Map<String, int> getPeers() => _peers;
+  Map<String, bool> getSelectedPeers() => _isPeerSelected;
 }
