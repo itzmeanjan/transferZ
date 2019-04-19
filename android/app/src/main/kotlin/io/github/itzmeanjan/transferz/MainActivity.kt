@@ -1,12 +1,11 @@
 package io.github.itzmeanjan.transferz
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.provider.MediaStore
 import android.view.Gravity
 import android.widget.Toast
@@ -57,7 +56,13 @@ class MainActivity : FlutterActivity() {
                     initFileChooser()
                 }
                 "showToast" -> {
-                    Toast.makeText(this, methodCall.argument<String>("message"), if (methodCall.argument<String>("duration") == "long") Toast.LENGTH_LONG else Toast.LENGTH_SHORT)?.show()
+                    Toast.makeText(this, methodCall.argument<String>("message"), if (methodCall.argument<String>("duration") == "long") Toast.LENGTH_LONG else Toast.LENGTH_SHORT).apply {
+                        setGravity(Gravity.CENTER, 0, 0)
+                        show()
+                    }
+                }
+                "vibrateDevice" -> {
+                    vibrateDevice(methodCall.argument<String>("type")!!)
                 }
                 else -> {
                     result.notImplemented()
@@ -103,6 +108,15 @@ class MainActivity : FlutterActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) // choosing multiple files is allowed if and only if API level is greater than 17
         startActivityForResult(intent, 998)
+    }
+
+    private fun vibrateDevice(type: String) {
+        (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).apply {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1)
+                vibrate(VibrationEffect.createOneShot(if (type == "default") 300 else 100, if (type == "default") VibrationEffect.DEFAULT_AMPLITUDE else 2))
+            else
+                vibrate(500)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

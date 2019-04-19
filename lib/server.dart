@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'dart:convert' show json, utf8;
+import 'dart:convert' show json;
+import 'package:path/path.dart' as pathHandler;
 
 class Server {
   String _host;
@@ -37,16 +38,13 @@ class Server {
           ..statusCode = HttpStatus.methodNotAllowed
           ..headers.contentType = ContentType.json
           ..write(json.encode(<String, String>{'status': 'GET Method Only'}))
-          ..close()
-              .whenComplete(() => _serverStatusCallBack.updateServerStatus({
+          ..close().then(
+              (val) => _serverStatusCallBack.updateServerStatus({
                     request.connectionInfo.remoteAddress.host: 'get method only'
-                  }))
-              .catchError((e) {
+                  }), onError: (e) {
             _serverStatusCallBack.updateServerStatus({
-              request.connectionInfo.remoteAddress.host:
-                  'Something went wrong while handling request'
+              request.connectionInfo.remoteAddress.host: 'Didn\'t complete'
             });
-            stopServer();
           });
       }
     } else {
@@ -54,15 +52,12 @@ class Server {
         ..statusCode = HttpStatus.forbidden
         ..headers.contentType = ContentType.json
         ..write(json.encode(<String, String>{'status': 'Access Denied'}))
-        ..close()
-            .whenComplete(() => _serverStatusCallBack.updateServerStatus(
-                {request.connectionInfo.remoteAddress.host: 'access denied'}))
-            .catchError((e) {
-          _serverStatusCallBack.updateServerStatus({
-            request.connectionInfo.remoteAddress.host:
-                'Something went wrong while handling request'
-          });
-          stopServer();
+        ..close().then(
+            (val) => _serverStatusCallBack.updateServerStatus(
+                {request.connectionInfo.remoteAddress.host: 'access denied'}),
+            onError: (e) {
+          _serverStatusCallBack.updateServerStatus(
+              {request.connectionInfo.remoteAddress.host: 'Didn\'t complete'});
         });
     }
   }
@@ -77,24 +72,49 @@ class Server {
         ..statusCode = HttpStatus.ok
         ..headers.contentType = ContentType.json
         ..write(json.encode(<String, List<String>>{"files": this._files}))
-        ..close()
-            .whenComplete(() => _serverStatusCallBack.updateServerStatus({
+        ..close().then(
+            (val) => _serverStatusCallBack.updateServerStatus({
                   getRequest.connectionInfo.remoteAddress.host:
-                      'Permitted file list sent'
-                }))
-            .catchError((e) {
+                      'Fetching file names ...'
+                }), onError: (e) {
+          _serverStatusCallBack.updateServerStatus({
+            getRequest.connectionInfo.remoteAddress.host: 'Didn\'t complete'
+          });
+        });
+    } else if (getRequest.uri.path == '/done') {
+      getRequest.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(json.encode({'status': 'Transfer Complete'}))
+        ..close().then((val) {
+          _serverStatusCallBack.updateServerStatus(
+              {getRequest.connectionInfo.remoteAddress.host: 'done'});
+        }, onError: (e) {
+          _serverStatusCallBack.updateServerStatus({
+            getRequest.connectionInfo.remoteAddress.host: 'Didn\'t complete'
+          });
+        });
+    } else if (getRequest.uri.path == '/undone') {
+      getRequest.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(json.encode({'status': 'Couldn\'t complete transfer'}))
+        ..close().then((val) {
           _serverStatusCallBack.updateServerStatus({
             getRequest.connectionInfo.remoteAddress.host:
-                'Something went wrong while handling request'
+                'Couldn\'t complete transfer'
           });
-          stopServer();
+        }, onError: (e) {
+          _serverStatusCallBack.updateServerStatus({
+            getRequest.connectionInfo.remoteAddress.host: 'Didn\'t complete'
+          });
         });
     } else {
       if (this._files.contains(getRequest.uri.path)) {
         getRequest.response.statusCode = HttpStatus.ok;
         _serverStatusCallBack.updateServerStatus({
           getRequest.connectionInfo.remoteAddress.host:
-              'Sending file ${getRequest.uri.path}'
+              'Fetching ${pathHandler.basename(getRequest.uri.path)}'
         });
         getRequest.response
             .addStream(File(getRequest.uri.path).openRead())
@@ -102,24 +122,25 @@ class Server {
           getRequest.response.close();
           _serverStatusCallBack.updateServerStatus({
             getRequest.connectionInfo.remoteAddress.host:
-                'Sent file ${getRequest.uri.path}'
+                'Fetched ${pathHandler.basename(getRequest.uri.path)}'
           });
         }, onError: (e) {
           _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host: 'Transfer Failed'
+            getRequest.connectionInfo.remoteAddress.host: 'Didn\'t complete'
           });
         });
       }
     }
   }
 
-  Future<dynamic> stopServer() {
+  stopServer() {
     isStopped = true;
-    return _httpServer?.close(force: true);
+    _httpServer?.close(force: true);
   }
 }
 
 abstract class ServerStatusCallBack {
   updateServerStatus(Map<String, String> msg);
+
   generalUpdate(String msg);
 }

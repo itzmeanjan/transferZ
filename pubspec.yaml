@@ -1,6 +1,8 @@
 name: transferz
 description: A simple Android Application built with &lt;3 using Flutter, for transferring files between devices.
 
+author: Anjan Roy<anjanroy@yandex.com>
+repository: https://github.com/itzmeanjan/transferz
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
