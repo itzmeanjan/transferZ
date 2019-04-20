@@ -3,8 +3,8 @@ import 'peer_finder.dart' show PeerInfoHolder;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'server.dart';
 import 'client.dart';
-import 'package:path/path.dart' as pathHandler;
 import 'dart:io' show File;
+import 'transfer_status.dart';
 
 class Sender extends StatefulWidget {
   final MethodChannel methodChannel;
@@ -27,6 +27,7 @@ class _SenderState extends State<Sender>
   bool _isFileChosen;
   bool _isTransferOn;
   String _homeDir;
+  int _downloadCount;
 
   Future<List<String>> initFileChooser() async {
     return await widget.methodChannel
@@ -57,58 +58,117 @@ class _SenderState extends State<Sender>
     // As user has to explicitly select certain device identifier(s), it passes them, otherwise gets discarded
     return widget.peerInfoHolder.getPeers().map((key, val) {
       if (widget.peerInfoHolder.getSelectedPeers()[key]) {
-        _peerStatus[key] = 'NA';
+        _peerStatus[key] = 'Status NA';
         return MapEntry(key, val);
       }
     });
   }
 
   @override
-  updateServerStatus(Map<String, String> msg) {
-    setState(() {
-      if (msg.values.toList()[0] == 'done') {
-        _isTransferOn = false;
-        _isFileChosen = false;
+  updateServerStatus(Map<String, int> msg) {
+    // mostly lets user know about PEER's activity
+    msg.forEach((key, val) {
+      switch (val) {
+        case TransferStatus.transferComplete:
+          // special case, to be handled
+          setState(() {
+            _isTransferOn = false;
+            _isFileChosen = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.transferIncomplete:
+          // also a special case, requires UI update for smoother experience
+          setState(() {
+            _isTransferOn = false;
+            _isFileChosen = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        default:
+          // otherwise simply let user know about current status
+          setState(() =>
+              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
+          break;
       }
-      _peerStatus[msg.keys.toList()[0]] = msg.values.toList()[0];
     });
   }
 
   @override
-  generalUpdate(String msg) {
-    print(msg);
+  generalUpdate(int code) {
+    // in case of general update, this callback is mostly invoked to let user know about SELF status, when it's `send` mode.
+    showToast(TransferStatus.transferCodeToString[code], 'short');
   }
 
   @override
-  updateClientStatus(Map<String, String> msg) {
-    setState(() {
-      if (msg.values.toList()[0] == 'failed') {
-        _isTransferOn = false;
-        _peerStatus[msg.keys.toList()[0]] = 'It didn\'t work';
-      } else
-        _peerStatus[msg.keys.toList()[0]] = msg.values.toList()[0];
+  updateClientStatus(Map<String, int> msg) {
+    msg.forEach((key, val) {
+      switch (val) {
+        case TransferStatus.connectionFailed:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.transferComplete:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.transferIncomplete:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.transferError:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.fetchMethodNotAllowed:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.fetchDenied:
+          setState(() {
+            _isTransferOn = false;
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+          });
+          break;
+        case TransferStatus.fileFetchInProgress:
+          setState(() =>
+              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
+          break;
+        case TransferStatus.fileFetched:
+          setState(() {
+            _peerStatus[key] = TransferStatus.transferCodeToString[val];
+            _downloadCount += 1;
+            if (_filesToBeTransferred.length == _downloadCount)
+              _client.sendRequest('/done');
+          });
+          break;
+        default:
+          setState(() =>
+              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
+          break;
+      }
     });
   }
 
   @override
-  onFileListFound(Map<String, List<String>> files) {
+  onFileListFound(List<String> files) {
     // this is the list of files which are going to be downloaded by client from server( Peer )
     // client keeps sending requests for those file and fetches them
     // when this process completes, client sends final confirmation to server, that completion was successful
-    files.forEach((key, val) {
-      val.forEach((elem) {
-        setState(() => _peerStatus[_filteredPeers.keys.toList()[0]] =
-            'Fetching ${pathHandler.basename(elem)}');
-        vibrateDevice();
-        _client.sendRequest(elem);
-      });
-      areAllFilesDownloaded(val
-              .map((elem) =>
-                  pathHandler.join(_homeDir, pathHandler.basename(elem)))
-              .toList())
-          ? _client.sendRequest('/done')
-          : _client.sendRequest('/undone');
-      setState(() => _isTransferOn = false);
+    _filesToBeTransferred = files;
+    _filesToBeTransferred.forEach((file) {
+      vibrateDevice();
+      _client.sendRequest(file);
     });
   }
 

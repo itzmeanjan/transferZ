@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert' show json, utf8;
 import 'package:path/path.dart' as pathHandler;
+import 'transfer_status.dart';
 
 class Client {
   String _targetHost;
@@ -18,52 +19,54 @@ class Client {
       ..get(this._targetHost, this._targetPort, path)
           .then((HttpClientRequest req) => req.close(),
               onError: (e) => _clientStatusCallBack.updateClientStatus(
-                  {_targetHost: 'Connection Failed \u{1f644}'}))
+                  {_targetHost: TransferStatus.connectionFailed}))
           .then((HttpClientResponse resp) {
         String msg;
         if (resp.statusCode == 200) {
           if (path == '/') {
+            // accessible file list being fetched from PEER
             resp.listen((List<int> data) {
               msg = utf8.decode(data);
             }, onDone: () {
               _httpClient.close();
-              _clientStatusCallBack.onFileListFound(serializeJSONResponse(msg));
-            });
+              _clientStatusCallBack
+                  .onFileListFound(serializeJSONResponse(msg)['files']);
+            },
+                onError: (e) => _clientStatusCallBack.updateClientStatus(
+                    {_targetHost: TransferStatus.transferError}));
           } else if (path == '/done') {
             resp.listen((List<int> data) {
               msg = utf8.decode(data);
             }, onDone: () {
               _httpClient.close();
-              _clientStatusCallBack.updateClientStatus({
-                _targetHost:
-                    Map<String, String>.from(json.decode(msg))['status']
-              });
+              _clientStatusCallBack.updateClientStatus(
+                  {_targetHost: TransferStatus.transferComplete});
             },
-                onError: () => _clientStatusCallBack
-                    .updateClientStatus({_targetHost: 'Transfer failed'}));
+                onError: () => _clientStatusCallBack.updateClientStatus(
+                    {_targetHost: TransferStatus.transferError}));
           } else if (path == '/undone') {
             resp.listen((List<int> data) {
               msg = utf8.decode(data);
             }, onDone: () {
               _httpClient.close();
-              _clientStatusCallBack.updateClientStatus({
-                _targetHost:
-                    Map<String, String>.from(json.decode(msg))['status']
-              });
+              _clientStatusCallBack.updateClientStatus(
+                  {_targetHost: TransferStatus.transferIncomplete});
             },
-                onError: () => _clientStatusCallBack
-                    .updateClientStatus({_targetHost: 'Transfer failed'}));
+                onError: () => _clientStatusCallBack.updateClientStatus(
+                    {_targetHost: TransferStatus.transferError}));
           } else {
+            _clientStatusCallBack.updateClientStatus(
+                {_targetHost: TransferStatus.fileFetchInProgress});
             File(pathHandler.join(_storagePath, pathHandler.basename(path)))
                 .openWrite(mode: FileMode.write)
                 .addStream(resp)
                 .then((val) {
               _httpClient.close();
               _clientStatusCallBack.updateClientStatus(
-                  {_targetHost: 'Fetched ${path.split('/').last}'});
+                  {_targetHost: TransferStatus.fileFetched});
             }, onError: (e) {
-              _clientStatusCallBack
-                  .updateClientStatus({_targetHost: 'Transfer failed'});
+              _clientStatusCallBack.updateClientStatus(
+                  {_targetHost: TransferStatus.transferError});
             });
           }
         } else {
@@ -72,14 +75,15 @@ class Client {
           }, onDone: () {
             _httpClient.close();
             _clientStatusCallBack.updateClientStatus({
-              _targetHost: Map<String, String>.from(json.decode(msg))['status']
+              _targetHost: Map<String, int>.from(json.decode(msg))['status']
             });
           },
-              onError: (e) => _clientStatusCallBack
-                  .updateClientStatus({_targetHost: 'Transfer failed'}));
+              onError: (e) => _clientStatusCallBack.updateClientStatus(
+                  {_targetHost: TransferStatus.transferError}));
         }
       }).catchError((e) {
-        _clientStatusCallBack.updateClientStatus({_targetHost: 'failed'});
+        _clientStatusCallBack
+            .updateClientStatus({_targetHost: TransferStatus.transferError});
         _httpClient?.close();
       });
   }
@@ -96,6 +100,6 @@ class Client {
 }
 
 abstract class ClientStatusCallBack {
-  updateClientStatus(Map<String, String> msg);
-  onFileListFound(Map<String, List<String>> files);
+  updateClientStatus(Map<String, int> msg);
+  onFileListFound(List<String> files);
 }
