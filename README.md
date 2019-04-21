@@ -11,11 +11,9 @@ Putting :star: will be highly appreciated :smile: .
 
 ## Overview of App
 
-  *Send Mode*
-  ![screen recording of app, running on physical device](https://github.com/itzmeanjan/transferZ/blob/master/screenRecord1.gif)
+   ![screen recording of app, running on physical device in send mode](https://github.com/itzmeanjan/transferZ/blob/master/screenRecord1.gif)
   
   
-  *Receive Mode*
-  ![screen recording of app, running on physical device](https://github.com/itzmeanjan/transferZ/blob/master/screenRecord2.gif)
+   ![screen recording of app, running on physical device in receive mode](https://github.com/itzmeanjan/transferZ/blob/master/screenRecord2.gif)
   
   
