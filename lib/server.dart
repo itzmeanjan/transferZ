@@ -1,32 +1,37 @@
 import 'dart:io';
 import 'dart:convert' show json;
-import 'transfer_status.dart';
+import 'package:path/path.dart' as pathHandler;
+import 'dart:async' show Completer;
 
 class Server {
   String _host;
   int _port;
   List<String> _filteredPeers;
-  List<String> _files;
+  List<String> filesToBeShared;
   ServerStatusCallBack _serverStatusCallBack;
   bool isStopped = true;
 
-  Server(this._host, this._port, this._filteredPeers, this._files,
+  Server(this._host, this._port, this._filteredPeers, this.filesToBeShared,
       this._serverStatusCallBack);
 
   HttpServer _httpServer;
 
-  Future initServer() async {
-    _httpServer = await HttpServer.bind(this._host, this._port)
-        .whenComplete(() =>
-            _serverStatusCallBack.generalUpdate(TransferStatus.serverStarted))
-        .catchError((e) {
-      _serverStatusCallBack.generalUpdate(TransferStatus.serverStartFailed);
-      stopServer();
-    });
-    isStopped = false;
-    await for (HttpRequest request in _httpServer) {
-      handleRequest(request);
-    }
+  Future<HttpServer> initServer() async {
+    var completer = Completer<HttpServer>();
+    await HttpServer.bind(this._host, this._port).then(
+      (HttpServer server) {
+        _httpServer = server;
+        isStopped = false;
+        _serverStatusCallBack.generalUpdate('Listening for Request');
+        completer.complete(_httpServer);
+      },
+      onError: (e) {
+        isStopped = true;
+        _serverStatusCallBack.generalUpdate('Failed to start Server');
+        completer.complete(null);
+      },
+    );
+    return completer.future;
   }
 
   handleRequest(HttpRequest request) {
@@ -34,110 +39,65 @@ class Server {
       if (request.method == 'GET')
         handleGETRequest(request);
       else {
+        String remoteHost = request.connectionInfo.remoteAddress.host;
         request.response
           ..statusCode = HttpStatus.methodNotAllowed
           ..headers.contentType = ContentType.json
-          ..write(json.encode(
-              <String, int>{'status': TransferStatus.fetchMethodNotAllowed}))
+          ..write(json
+              .encode(<String, String>{'status': 'Only GET method allowed'}))
           ..close().then(
-              (val) => _serverStatusCallBack.updateServerStatus({
-                    request.connectionInfo.remoteAddress.host:
-                        TransferStatus.fetchMethodNotAllowed
-                  }), onError: (e) {
-            _serverStatusCallBack.updateServerStatus({
-              request.connectionInfo.remoteAddress.host:
-                  TransferStatus.transferError
-            });
-          });
+            (val) => _serverStatusCallBack
+                .updateServerStatus({remoteHost: 'Only GET method allowed'}),
+            onError: (e) => _serverStatusCallBack
+                .updateServerStatus({remoteHost: 'Transfer Error'}),
+          );
       }
     } else {
       request.response
         ..statusCode = HttpStatus.forbidden
         ..headers.contentType = ContentType.json
-        ..write(
-            json.encode(<String, int>{'status': TransferStatus.fetchDenied}))
+        ..write(json.encode(<String, String>{'status': 'Device not allowed'}))
         ..close().then(
-            (val) =>
-                _serverStatusCallBack.generalUpdate(TransferStatus.fetchDenied),
-            onError: (e) {
-          _serverStatusCallBack.generalUpdate(TransferStatus.transferError);
-        });
+          (val) => _serverStatusCallBack.generalUpdate('Device not allowed'),
+          onError: (e) => _serverStatusCallBack.generalUpdate('Transfer Error'),
+        );
     }
   }
 
-  bool isAccessGranted(String remoteAddress) {
-    return this._filteredPeers.contains(remoteAddress);
-  }
+  bool isAccessGranted(String remoteAddress) =>
+      // checks whether IP address of incoming request is with in user selected IP-list or not
+      this._filteredPeers.contains(remoteAddress);
 
   handleGETRequest(HttpRequest getRequest) {
-    if (getRequest.uri.path == '/') {
+    String remoteAddress = getRequest.connectionInfo.remoteAddress.host;
+    String requestedPath = getRequest.uri.path;
+    if (requestedPath == '/')
       getRequest.response
         ..statusCode = HttpStatus.ok
         ..headers.contentType = ContentType.json
-        ..write(json.encode(<String, List<String>>{"files": this._files}))
+        ..write(
+            json.encode(<String, List<String>>{"files": this.filesToBeShared}))
         ..close().then(
-            (val) => _serverStatusCallBack.updateServerStatus({
-                  getRequest.connectionInfo.remoteAddress.host:
-                      TransferStatus.accessibleFileListShared
-                }), onError: (e) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferError
-          });
-        });
-    } else if (getRequest.uri.path == '/done') {
-      getRequest.response
-        ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType.json
-        ..write(json.encode({'status': TransferStatus.transferComplete}))
-        ..close().then((val) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferComplete
-          });
-        }, onError: (e) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferError
-          });
-        });
-    } else if (getRequest.uri.path == '/undone') {
-      getRequest.response
-        ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType.json
-        ..write(json.encode({'status': TransferStatus.transferIncomplete}))
-        ..close().then((val) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferIncomplete
-          });
-        }, onError: (e) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferError
-          });
-        });
-    } else {
-      if (this._files.contains(getRequest.uri.path)) {
+          (val) => _serverStatusCallBack.updateServerStatus(
+              {remoteAddress: 'Retrived accessible File List'}),
+          onError: (e) => _serverStatusCallBack
+              .updateServerStatus({remoteAddress: 'Transfer Error'}),
+        );
+    else {
+      if (this.filesToBeShared.contains(requestedPath)) {
         getRequest.response.statusCode = HttpStatus.ok;
-        _serverStatusCallBack.updateServerStatus({
-          getRequest.connectionInfo.remoteAddress.host:
-              TransferStatus.fileFetchInProgress
-        });
-        getRequest.response
-            .addStream(File(getRequest.uri.path).openRead())
-            .then((val) {
-          getRequest.response.close();
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.fileFetched
-          });
-        }, onError: (e) {
-          _serverStatusCallBack.updateServerStatus({
-            getRequest.connectionInfo.remoteAddress.host:
-                TransferStatus.transferError
-          });
-        });
+        _serverStatusCallBack.updateServerStatus(
+            {remoteAddress: 'Fetching ${pathHandler.basename(requestedPath)}'});
+        getRequest.response.addStream(File(requestedPath).openRead()).then(
+          (val) {
+            getRequest.response.close();
+            _serverStatusCallBack.updateServerStatus({
+              remoteAddress: 'Fetched ${pathHandler.basename(requestedPath)}'
+            });
+          },
+          onError: (e) => _serverStatusCallBack
+              .updateServerStatus({remoteAddress: 'Transfer Error'}),
+        );
       }
     }
   }
@@ -145,12 +105,12 @@ class Server {
   stopServer() {
     isStopped = true;
     _httpServer?.close(force: true);
-    _serverStatusCallBack.generalUpdate(TransferStatus.serverStopped);
+    _serverStatusCallBack.generalUpdate('Stopped Server');
   }
 }
 
 abstract class ServerStatusCallBack {
-  updateServerStatus(Map<String, int> msg);
+  updateServerStatus(Map<String, String> msg);
 
-  generalUpdate(int msg);
+  generalUpdate(String msg);
 }

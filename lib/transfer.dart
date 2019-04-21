@@ -4,7 +4,8 @@ import 'package:flutter/services.dart' show MethodChannel;
 import 'server.dart';
 import 'client.dart';
 import 'dart:io' show File;
-import 'transfer_status.dart';
+import 'package:path/path.dart' as pathHandler;
+import 'dart:io';
 
 class Sender extends StatefulWidget {
   final MethodChannel methodChannel;
@@ -17,184 +18,102 @@ class Sender extends StatefulWidget {
   _SenderState createState() => _SenderState();
 }
 
-class _SenderState extends State<Sender>
-    implements ServerStatusCallBack, ClientStatusCallBack {
-  Map<String, int> _filteredPeers;
-  List<String> _filesToBeTransferred;
-  Server _server;
-  Client _client;
-  Map<String, String> _peerStatus;
-  bool _isFileChosen;
-  bool _isTransferOn;
-  String _homeDir;
-  int _downloadCount;
-
-  Future<List<String>> initFileChooser() async {
-    return await widget.methodChannel
-        .invokeMethod('initFileChooser')
-        .then((val) => List<String>.from(val));
-  }
+class _SenderState extends State<Sender> implements ServerStatusCallBack {
+  Map<String, int>
+      _filteredPeers; // PEERs which are going to take part in transfer
+  List<String> _filesToBeTransferred; // files to be transferred
+  Server _server; // server object
+  Client _client; // client Object
+  Map<String, List<String>> _peerStatus; // keeps track of status of PEER
+  String
+      _targetHomeDir; // gets directory path, where to store files, fetched from PEER
+  bool _isFileChosen; // helps to update UI
+  bool _isTransferOn; // helps to update UI
+  int _serverSideDownloadCount;
 
   @override
   void initState() {
     super.initState();
     _filesToBeTransferred = [];
-    _isFileChosen = false;
-    _isTransferOn = false;
+    _serverSideDownloadCount = 0;
+    _isFileChosen = false; // at first no file chosen
+    _isTransferOn = false; // at first, transfer not started
     _peerStatus = {};
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
+      // instance of Server created, which listens on 0.0.0.0:8000
       _server = Server('0.0.0.0', 8000, _filteredPeers.keys.toList(),
           _filesToBeTransferred, this);
     else
-      getHomeDir().then((val) {
-        _homeDir = val;
-        _client = Client(_filteredPeers.keys.toList()[0],
-            _filteredPeers.values.toList()[0], _homeDir, this);
+      getHomeDir().then((String val) {
+        _targetHomeDir =
+            val; // home directory path, fetched using PlatformChannel
       });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    // resource management is important, closes server object, client object etc.
+    _server?.stopServer();
+    // null-safe operator is used, to ensure that if server/ client not initialized, then it must not cause any exception
+    _client?.disconnect();
+  }
+
   Map<String, int> filterEligiblePeers() {
-    // As user has to explicitly select certain device identifier(s), it passes them, otherwise gets discarded
+    // As user has to explicitly select certain device identifier(s), check performed to test it, otherwise gets discarded
     return widget.peerInfoHolder.getPeers().map((key, val) {
       if (widget.peerInfoHolder.getSelectedPeers()[key]) {
-        _peerStatus[key] = 'Status NA';
+        _peerStatus[key] = [];
         return MapEntry(key, val);
       }
     });
   }
 
   @override
-  updateServerStatus(Map<String, int> msg) {
+  updateServerStatus(Map<String, String> msg) {
     // mostly lets user know about PEER's activity
     msg.forEach((key, val) {
-      switch (val) {
-        case TransferStatus.transferComplete:
-          // special case, to be handled
-          setState(() {
-            _isTransferOn = false;
-            _isFileChosen = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.transferIncomplete:
-          // also a special case, requires UI update for smoother experience
-          setState(() {
-            _isTransferOn = false;
-            _isFileChosen = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        default:
-          // otherwise simply let user know about current status
-          setState(() =>
-              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
-          break;
-      }
+      setState(() {
+        _peerStatus[key].add(val);
+      });
+      _serverSideDownloadCount += val.startsWith('Fetched ') ? 1 : 0;
     });
+    if (_serverSideDownloadCount ==
+        _filteredPeers.length * _filesToBeTransferred.length)
+      setState(() {
+        // indicates completion of full transfer, when working as Server
+        _isTransferOn = false;
+        _isFileChosen = false;
+        _filesToBeTransferred = [];
+      });
   }
 
   @override
-  generalUpdate(int code) {
-    // in case of general update, this callback is mostly invoked to let user know about SELF status, when it's `send` mode.
-    showToast(TransferStatus.transferCodeToString[code], 'short');
-  }
+  generalUpdate(String msg) =>
+      // in case of general update, this callback is mostly invoked to let user know about SELF status, when device is in `send` mode.
+      showToast(msg, 'short');
 
-  @override
-  updateClientStatus(Map<String, int> msg) {
-    msg.forEach((key, val) {
-      switch (val) {
-        case TransferStatus.connectionFailed:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.transferComplete:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.transferIncomplete:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.transferError:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.fetchMethodNotAllowed:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.fetchDenied:
-          setState(() {
-            _isTransferOn = false;
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-          });
-          break;
-        case TransferStatus.fileFetchInProgress:
-          setState(() =>
-              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
-          break;
-        case TransferStatus.fileFetched:
-          setState(() {
-            _peerStatus[key] = TransferStatus.transferCodeToString[val];
-            _downloadCount += 1;
-            if (_filesToBeTransferred.length == _downloadCount)
-              _client.sendRequest('/done');
-          });
-          break;
-        default:
-          setState(() =>
-              _peerStatus[key] = TransferStatus.transferCodeToString[val]);
-          break;
-      }
-    });
-  }
+  Future<String> getHomeDir() async =>
+      // fetches path to homeDir, actually this is the directory where I'm going to store all files, fetched from any PEER
+      await widget.methodChannel.invokeMethod('getHomeDir',
+          <String, String>{'dirName': 'transferZ'}).then((val) => val);
 
-  @override
-  onFileListFound(List<String> files) {
-    // this is the list of files which are going to be downloaded by client from server( Peer )
-    // client keeps sending requests for those file and fetches them
-    // when this process completes, client sends final confirmation to server, that completion was successful
-    _filesToBeTransferred = files;
-    _filesToBeTransferred.forEach((file) {
-      vibrateDevice();
-      _client.sendRequest(file);
-    });
-  }
+  vibrateDevice({String type: 'tick'}) async =>
+      // uses platform channel to vibrate device using a certain type of VibrationEffect
+      // in this case I'm using a single shot click vibrator
+      await widget.methodChannel
+          .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
-  bool areAllFilesDownloaded(List<String> files) {
-    // checks whether all files, which were supposed to be transferred, are done successfully
-    return files.every((file) {
-      return File(file).existsSync();
-    });
-  }
+  showToast(String message, String duration) async =>
+      // use platform channel and display a toast message
+      await widget.methodChannel.invokeMethod('showToast',
+          <String, String>{'message': message, 'duration': duration});
 
-  Future<String> getHomeDir() async {
-    // fetches path to homeDir, actually this is the directory where I'm going to store all files fetched from any peers
-    return await widget.methodChannel.invokeMethod('getHomeDir',
-        <String, String>{'dirName': 'transferZ'}).then((val) => val);
-  }
-
-  vibrateDevice({String type: 'tick'}) async {
-    // uses platform channel to vibrate device using a certain type of VibrationEffect
-    // in this case I'm using a single shot click vibrator
-    await widget.methodChannel
-        .invokeMethod('vibrateDevice', <String, String>{'type': type});
-  }
-
-  showToast(String message, String duration) async {
-    await widget.methodChannel.invokeMethod('showToast',
-        <String, String>{'message': message, 'duration': duration});
+  Future<List<String>> initFileChooser() async {
+    return await widget.methodChannel
+        .invokeMethod('initFileChooser')
+        .then((val) => List<String>.from(val));
   }
 
   @override
@@ -223,45 +142,85 @@ class _SenderState extends State<Sender>
           children: <Widget>[
             Expanded(
               child: ListView.builder(
-                itemBuilder: (context, index) {
+                itemBuilder: (context, indexP) {
                   return Padding(
                     padding: EdgeInsets.only(
                       top: 12,
                       bottom: 12,
-                      left: 10,
-                      right: 10,
+                      left: 12,
+                      right: 12,
                     ),
                     child: Card(
-                      color: Colors.greenAccent,
+                      color: Colors.white54,
                       elevation: 16,
                       child: Column(
                         children: <Widget>[
                           Padding(
                             child: Text(
-                              '\u{1f4f1} <--> ${_filteredPeers.keys.toList()[index]}',
+                              '\u{1f4f1} ${_filteredPeers.keys.toList()[indexP]}',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
-                              textScaleFactor: 2,
+                              textScaleFactor: 1.5,
                             ),
                             padding: EdgeInsets.only(
                                 top: 16, bottom: 16, left: 8, right: 8),
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                top: 16, bottom: 16, left: 6, right: 6),
-                            child: Text(
-                              _peerStatus[_filteredPeers.keys.toList()[index]],
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 10,
-                              ),
-                              textScaleFactor: 1.3,
-                              maxLines: 6,
-                              softWrap: true,
-                              overflow: TextOverflow.fade,
-                            ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height / 4.5,
+                            width: MediaQuery.of(context).size.width * .9,
+                            child: _peerStatus[
+                                        _filteredPeers.keys.toList()[indexP]]
+                                    .isEmpty
+                                ? Center(
+                                    child: Icon(
+                                      IconData(128564),
+                                      size: 75,
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemBuilder: (context, indexC) {
+                                      return Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 12,
+                                          right: 12,
+                                          top: 8,
+                                          bottom: 8,
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(18),
+                                          ),
+                                          child: Card(
+                                            elevation: 12,
+                                            color: Color(745822),
+                                            child: Padding(
+                                              padding: EdgeInsets.only(
+                                                  top: 16,
+                                                  bottom: 16,
+                                                  left: 6,
+                                                  right: 6),
+                                              child: Text(
+                                                _peerStatus[_filteredPeers.keys
+                                                    .toList()[indexP]][indexC],
+                                                style: TextStyle(
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                maxLines: 6,
+                                                softWrap: true,
+                                                overflow: TextOverflow.fade,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    itemCount: _peerStatus[_filteredPeers.keys
+                                            .toList()[indexP]]
+                                        .length,
+                                  ),
                           ),
                         ],
                         mainAxisSize: MainAxisSize.min,
@@ -296,8 +255,26 @@ class _SenderState extends State<Sender>
                             : () {
                                 if (_filesToBeTransferred.isNotEmpty) {
                                   if (_server.isStopped) {
-                                    _server.initServer();
-                                    setState(() => _isTransferOn = true);
+                                    setState(() {
+                                      _isTransferOn = true;
+                                      _peerStatus.forEach(
+                                          (key, val) => _peerStatus[key] = []);
+                                    });
+                                    _server
+                                        .initServer()
+                                        .then((HttpServer httpServer) {
+                                      httpServer?.listen((HttpRequest request) {
+                                        _server.handleRequest(request);
+                                      }, onDone: () {
+                                        showToast('Server Stopped', 'short');
+                                      }, onError: (e) {
+                                        setState(() {
+                                          _isTransferOn = false;
+                                          _isFileChosen = false;
+                                        });
+                                        print(e.toString());
+                                      }, cancelOnError: true);
+                                    });
                                   }
                                 }
                               }
@@ -307,9 +284,11 @@ class _SenderState extends State<Sender>
                               _filesToBeTransferred = filePaths.map((elem) {
                                 if (File(elem).existsSync()) return elem;
                               }).toList();
-                              if (_filesToBeTransferred.isNotEmpty)
+                              if (_filesToBeTransferred.isNotEmpty) {
                                 setState(() => _isFileChosen = true);
-                              else
+                                _server.filesToBeShared =
+                                    List.from(_filesToBeTransferred);
+                              } else
                                 showToast('Select onDevice Files', 'short');
                             });
                           }
@@ -317,16 +296,79 @@ class _SenderState extends State<Sender>
                     : _isTransferOn
                         // check if user has started transfer
                         ? () {
-                            _client.stopClient();
+                            _client.disconnect();
                             setState(() => _isTransferOn = false);
                           }
                         // or not
                         : () {
-                            _client.sendRequest('/');
+                            String _peerIP;
+                            //int _peerPort;
+                            Client client;
+                            _filteredPeers.forEach((key, val) {
+                              _peerIP = key;
+                              client = Client(key, val);
+                              //_peerPort = val;
+                            });
                             setState(() {
                               _isTransferOn = true;
-                              _peerStatus[_filteredPeers.keys.toList()[0]] =
-                                  'Requesting file list ...';
+                              _peerStatus[_peerIP] = ['Connecting to Peer ...'];
+                            });
+
+                            client.connect('/').then((HttpClientRequest req) {
+                              if (req != null) {
+                                setState(() => _peerStatus[_peerIP]
+                                    .add('Retrieving sharable file names ...'));
+                                client
+                                    .fetchFileNames(req)
+                                    .then((List<String> targetFiles) {
+                                  targetFiles.forEach((path) {
+                                    setState(() => _peerStatus[_peerIP].add(
+                                        'Requesting ${pathHandler.basename(path)} ...'));
+                                    client
+                                        .connect(path)
+                                        .then((HttpClientRequest req) {
+                                      if (req != null) {
+                                        setState(() => _peerStatus[_peerIP].add(
+                                            'Fetching ${pathHandler.basename(path)} ...'));
+                                        client
+                                            .fetchFile(
+                                                req,
+                                                pathHandler.join(_targetHomeDir,
+                                                    pathHandler.basename(path)))
+                                            .then((bool isSuccess) {
+                                          if (isSuccess) vibrateDevice();
+                                          setState(() => _peerStatus[_peerIP].add(
+                                              '${isSuccess ? 'Fetched' : 'Failed to fetch'} ${pathHandler.basename(path)}'));
+                                          if (targetFiles.last == path) {
+                                            client.disconnect();
+                                            setState(() {
+                                              _isTransferOn = false;
+                                              _peerStatus[_peerIP]
+                                                  .add('Transfer Complete');
+                                            });
+                                          }
+                                        });
+                                      } else
+                                        setState(() {
+                                          _isTransferOn = false;
+                                          _peerStatus[_peerIP]
+                                              .add('Connection Failed');
+                                        });
+                                    });
+                                  });
+                                  if (targetFiles.isEmpty) {
+                                    setState(() {
+                                      _isTransferOn = false;
+                                      _peerStatus[_peerIP].add('Access Denied');
+                                    });
+                                    client.disconnect();
+                                  }
+                                });
+                              } else
+                                setState(() {
+                                  _isTransferOn = false;
+                                  _peerStatus[_peerIP].add('Connection Failed');
+                                });
                             });
                           },
                 child: Text(widget.peerInfoHolder.type == 'send'

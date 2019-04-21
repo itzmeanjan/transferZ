@@ -153,7 +153,7 @@ class _MyHomeState extends State<MyHome> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     IconButton(
-                      iconSize: 60,
+                      iconSize: 75,
                       splashColor: Colors.white,
                       icon: Icon(
                         Icons.file_upload,
@@ -170,7 +170,7 @@ class _MyHomeState extends State<MyHome> {
                     ),
                     IconButton(
                       splashColor: Colors.white,
-                      iconSize: 60,
+                      iconSize: 75,
                       icon: Icon(
                         Icons.file_download,
                         color: Colors.teal,
