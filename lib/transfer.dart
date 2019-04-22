@@ -80,13 +80,15 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
       _serverSideDownloadCount += val.startsWith('Fetched ') ? 1 : 0;
     });
     if (_serverSideDownloadCount ==
-        _filteredPeers.length * _filesToBeTransferred.length)
+        _filteredPeers.length * _filesToBeTransferred.length) {
       setState(() {
         // indicates completion of full transfer, when working as Server
         _isTransferOn = false;
         _isFileChosen = false;
         _filesToBeTransferred = [];
       });
+      vibrateDevice();
+    }
   }
 
   @override

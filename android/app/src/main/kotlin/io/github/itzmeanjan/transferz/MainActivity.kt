@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -64,6 +65,9 @@ class MainActivity : FlutterActivity() {
                 "vibrateDevice" -> {
                     vibrateDevice(methodCall.argument<String>("type")!!)
                 }
+                "isConnected" -> {
+                    result.success(isConnected())
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -118,6 +122,10 @@ class MainActivity : FlutterActivity() {
                 vibrate(500)
         }
     }
+
+    private fun isConnected(): Boolean =
+            (getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo?.isConnected
+                    ?: false
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

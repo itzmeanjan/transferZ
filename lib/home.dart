@@ -46,33 +46,35 @@ class _MyHomeState extends State<MyHome> {
     });
   }
 
-  Future<bool> isPermissionAvailable() async {
-    return await _methodChannel
-        .invokeMethod('isPermissionAvailable')
-        .then((val) => val);
-  }
+  Future<bool> isPermissionAvailable() async => await _methodChannel
+      .invokeMethod('isPermissionAvailable')
+      .then((val) => val);
 
-  Future<bool> requestPermission() async {
-    return await _methodChannel
-        .invokeMethod('requestPermission')
-        .then((val) => val);
-  }
+  Future<bool> requestPermission() async =>
+      await _methodChannel.invokeMethod('requestPermission').then((val) => val);
 
-  Future<String> getHomeDir() async {
-    return await _methodChannel.invokeMethod('getHomeDir',
-        <String, String>{'dirName': 'transferZ'}).then((val) => val);
-  }
+  Future<String> getHomeDir() async => await _methodChannel.invokeMethod(
+      'getHomeDir',
+      <String, String>{'dirName': 'transferZ'}).then((val) => val);
 
-  Future<List<String>> initFileChooser() async {
-    return await _methodChannel
-        .invokeMethod('initFileChooser')
-        .then((val) => List<String>.from(val));
-  }
+  Future<List<String>> initFileChooser() async => await _methodChannel
+      .invokeMethod('initFileChooser')
+      .then((val) => List<String>.from(val));
 
-  Future<void> showToast(String message, String duration) async {
-    await _methodChannel.invokeMethod('showToast',
-        <String, String>{'message': message, 'duration': duration});
-  }
+  Future<void> showToast(String message, String duration) async =>
+      // simply show a toast message
+      await _methodChannel.invokeMethod('showToast',
+          <String, String>{'message': message, 'duration': duration});
+
+  Future<bool> isConnected() async =>
+      // checks whether we're connected to internet or not
+      await _methodChannel.invokeMethod('isConnected').then((val) => val);
+
+  vibrateDevice({String type: 'tick'}) async =>
+      // uses platform channel to vibrate device using a certain type of VibrationEffect
+      // in this case I'm using a single shot click vibrator
+      await _methodChannel
+          .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
   floatingActionButtonCallBack() {
     requestPermission().then((res) {
@@ -159,13 +161,18 @@ class _MyHomeState extends State<MyHome> {
                         Icons.file_upload,
                         color: Colors.cyan,
                       ),
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => PeerFinder(
-                                  type: 'send',
-                                  methodChannel: _methodChannel,
-                                )));
-                      },
+                      onPressed: () => isConnected().then((val) {
+                            if (val)
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => PeerFinder(
+                                        type: 'send',
+                                        methodChannel: _methodChannel,
+                                      )));
+                            else {
+                              vibrateDevice();
+                              showToast('Get connected to WIFI', 'short');
+                            }
+                          }),
                       tooltip: 'Send File',
                     ),
                     IconButton(
@@ -175,13 +182,18 @@ class _MyHomeState extends State<MyHome> {
                         Icons.file_download,
                         color: Colors.teal,
                       ),
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => PeerFinder(
-                                  type: 'receive',
-                                  methodChannel: _methodChannel,
-                                )));
-                      },
+                      onPressed: () => isConnected().then((val) {
+                            if (val)
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => PeerFinder(
+                                        type: 'receive',
+                                        methodChannel: _methodChannel,
+                                      )));
+                            else {
+                              vibrateDevice();
+                              showToast('Get connected to WIFI', 'short');
+                            }
+                          }),
                       tooltip: 'Receive File',
                     ),
                   ],
