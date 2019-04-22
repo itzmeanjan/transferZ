@@ -19,7 +19,8 @@ Most recent release can be found [here](https://github.com/itzmeanjan/transferZ/
   
 ## Implementation Guide
 
-This [post](https://dev.to/itzmeanjan/making-of-transferz-part-1-n-3mjf) puts light on implementation of *Client-Server* portion of *transferZ*.
+
+[Making of transferZ](https://dev.to/itzmeanjan/making-of-transferz-part-1-n-3mjf), an article series, which I started [here](https://dev.to/itzmeanjan), puts light on detailed implementation of *Client-Server* portion of *transferZ*.
 
 
 Articles covering remaining sections coming soon :wink:. 
