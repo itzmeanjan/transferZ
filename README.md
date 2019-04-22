@@ -7,10 +7,7 @@ Putting :star: will be highly appreciated :smile: .
 
 ### Release
 
-Most recent release can be found [here](https://github.com/itzmeanjan/transferZ/releases/tag/v1.0).
-
-Download *APK* [here](https://github.com/itzmeanjan/transferZ/releases/download/v1.0/transferZ-1.0.apk).
-
+All releases can be found [here](https://github.com/itzmeanjan/transferZ/releases).
 
 ## App on Run
 
