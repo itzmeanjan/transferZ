@@ -1,3 +1,5 @@
+<p align="center"><img src="/android/app/src/main/res/logo/logotype-horizontal.png"></p>
+
 # transferz
 
 A simple Android Application built with :heart: using Flutter, for transferring files between devices.
