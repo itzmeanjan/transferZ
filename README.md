@@ -1,4 +1,4 @@
-<p align="center"><img src="/android/app/src/main/res/logo/logotype-horizontal.png"></p>
+<p align="center"><img src="/logo/logotype-horizontal.png"></p>
 
 # transferz
 
@@ -50,3 +50,8 @@ All releases can be found [here](https://github.com/itzmeanjan/transferZ/release
 
 
 Articles covering remaining sections coming soon :wink:. 
+
+
+## Courtesy
+
+Thanks to [Tobaloidee](https://github.com/Tobaloidee), for designing logo and icon for *transferZ* :heart:
