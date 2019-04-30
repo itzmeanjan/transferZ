@@ -114,3 +114,57 @@ abstract class ServerStatusCallBack {
 
   generalUpdate(String msg);
 }
+
+/*
+import 'dart:io';
+import 'dart:convert' show utf8;
+
+main() => ServerSocket.bind(InternetAddress.anyIPv6, 8000).then(
+      (ServerSocket server) {
+        var fileNames = <String>[
+          '/home/anjan/Videos/M4n1k4rn1k4.Th3.Q733n.0f.Jh4n51.19.br.sdm0v13sp01nt.pr0.mkv',
+        ];
+        var msg = '';
+        print(
+            '[+]Server Listening at ${server.address.address}:${server.port}');
+        server.listen(
+          (Socket socket) {
+            print(
+                '[+]Connection from ${socket.remoteAddress.address}:${socket.remotePort}');
+            socket.listen(
+              (List<int> data) {
+                var decodedData = utf8.decode(data);
+                if (decodedData == '/file') {
+                  socket.write(fileNames.join(';'));
+                  msg = '\t -- Sent File Names';
+                  socket.close();
+                } else if (fileNames.contains(decodedData))
+                  socket.addStream(File(decodedData).openRead()).then(
+                    (val) {
+                      msg = '\t -- Sent File $decodedData';
+                      socket.close();
+                    },
+                    onError: (e) => print(e),
+                  );
+                else {
+                  msg = '\t -- Bad request';
+                  socket.close();
+                }
+              },
+              onError: (e) {
+                msg = e.toString();
+                socket.close();
+              },
+              onDone: () => print(msg),
+              cancelOnError: true,
+            );
+          },
+          onError: (e) => print(e),
+          onDone: () => print('[!]Stopped Server'),
+          cancelOnError: true,
+        );
+      },
+      onError: (e) => print(e),
+    );
+
+ */
