@@ -14,8 +14,10 @@
       <change beforePath="$PROJECT_DIR$/android/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/android/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/android/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/caches/build_file_checksums.ser" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/local.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/client.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/server.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/server.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/transfer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/transfer.dart" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.dart_tool/" />
     <ignored path="$PROJECT_DIR$/.idea/" />
@@ -35,8 +37,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/server.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
-              <caret line="119" column="32" lean-forward="true" selection-start-line="118" selection-end-line="119" selection-end-column="32" />
+            <state>
+              <caret lean-forward="true" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -47,9 +49,22 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/client.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="351">
+              <caret line="51" column="8" lean-forward="true" selection-start-line="51" selection-start-column="8" selection-end-line="51" selection-end-column="8" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/transfer.dart">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="210">
+              <caret line="323" column="48" lean-forward="true" selection-start-line="323" selection-start-column="48" selection-end-line="323" selection-end-column="48" />
+              <folding>
+                <element signature="e#0#39#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -111,10 +126,10 @@
         <option value="$PROJECT_DIR$/lib/peer_finder.dart" />
         <option value="$PROJECT_DIR$/lib/transfer_status.dart" />
         <option value="$PROJECT_DIR$/lib/home.dart" />
-        <option value="$PROJECT_DIR$/lib/transfer.dart" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/lib/client.dart" />
         <option value="$PROJECT_DIR$/lib/server.dart" />
+        <option value="$PROJECT_DIR$/lib/client.dart" />
+        <option value="$PROJECT_DIR$/lib/transfer.dart" />
       </list>
     </option>
   </component>
@@ -130,7 +145,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="AndroidView" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -138,12 +155,15 @@
               <item name="transferz" type="b2602c69:ProjectViewProjectNode" />
               <item name="transferz" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="transferz" type="b2602c69:ProjectViewProjectNode" />
+              <item name="transferz" type="462c0819:PsiDirectoryNode" />
+              <item name="lib" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="AndroidView" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -191,7 +211,7 @@
     <frame x="0" y="27" width="1366" height="741" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49837664" visible="true" weight="0.1744713" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49837664" visible="true" weight="0.20468278" />
       <window_info id="Captures" order="1" side_tool="true" weight="0.32930514" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.32930514" />
       <window_info id="Image Layers" order="3" />
@@ -201,7 +221,7 @@
       <window_info id="Favorites" order="7" sideWeight="0.5016234" side_tool="true" weight="0.25" />
       <window_info id="Resources Explorer" order="8" weight="0.32930514" />
       <window_info anchor="bottom" id="Dart Analysis" order="0" weight="0.32792208" />
-      <window_info anchor="bottom" id="Run" order="1" sideWeight="0.49924472" weight="0.26136363" />
+      <window_info anchor="bottom" id="Run" order="1" sideWeight="0.49924472" weight="0.3198052" />
       <window_info anchor="bottom" id="TODO" order="2" weight="0.32954547" />
       <window_info anchor="bottom" id="Android Profiler" order="3" show_stripe_button="false" />
       <window_info anchor="bottom" id="Logcat" order="4" />
@@ -212,7 +232,7 @@
       <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Messages" order="10" weight="0.32954547" />
       <window_info anchor="bottom" id="Find" order="11" />
-      <window_info anchor="right" id="Device File Explorer" order="0" side_tool="true" />
+      <window_info anchor="right" id="Device File Explorer" order="0" side_tool="true" weight="0.32930514" />
       <window_info anchor="right" id="Capture Analysis" order="1" />
       <window_info anchor="right" id="Theme Preview" order="2" />
       <window_info anchor="right" id="Flutter Inspector" order="3" weight="0.32930514" />
@@ -282,16 +302,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/transfer.dart">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="66" column="30" selection-start-line="66" selection-start-column="30" selection-end-line="66" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#39#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/home.dart">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="561">
@@ -329,9 +339,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/lib/transfer.dart">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="323" column="48" lean-forward="true" selection-start-line="323" selection-start-column="48" selection-end-line="323" selection-end-column="48" />
+          <folding>
+            <element signature="e#0#39#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/lib/client.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="351">
+          <caret line="51" column="8" lean-forward="true" selection-start-line="51" selection-start-column="8" selection-end-line="51" selection-end-column="8" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
@@ -340,8 +361,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/server.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
-          <caret line="119" column="32" lean-forward="true" selection-start-line="118" selection-end-line="119" selection-end-column="32" />
+        <state>
+          <caret lean-forward="true" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>

@@ -3,7 +3,7 @@ import 'peer_finder.dart' show PeerInfoHolder;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'server.dart';
 import 'client.dart';
-import 'dart:io' show File;
+import 'dart:io' show File, InternetAddress;
 import 'package:path/path.dart' as pathHandler;
 import 'dart:io';
 
@@ -42,8 +42,8 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
       // instance of Server created, which listens on 0.0.0.0:8000
-      _server = Server('0.0.0.0', 8000, _filteredPeers.keys.toList(),
-          _filesToBeTransferred, this);
+      _server = Server(InternetAddress.anyIPv4.address, 8000,
+          _filteredPeers.keys.toList(), _filesToBeTransferred, this);
     else
       getHomeDir().then((String val) {
         _targetHomeDir =
@@ -55,7 +55,7 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
   void dispose() {
     super.dispose();
     // resource management is important, closes server object, client object etc.
-    _server?.stopServer();
+    _server?.stop();
     // null-safe operator is used, to ensure that if server/ client not initialized, then it must not cause any exception
     _client?.disconnect();
   }
@@ -119,275 +119,246 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('transferZ'),
-        backgroundColor: Colors.tealAccent,
-        elevation: 16,
-      ),
-      body: Container(
-        padding: EdgeInsets.only(
-          top: 16,
-          bottom: 16,
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text('transferZ'),
+          backgroundColor: Colors.tealAccent,
+          elevation: 16,
         ),
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-          colors: [Colors.tealAccent, Colors.cyanAccent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, indexP) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: 12,
-                      bottom: 12,
-                      left: 12,
-                      right: 12,
-                    ),
-                    child: Card(
-                      color: Colors.white54,
-                      elevation: 16,
-                      child: Column(
-                        children: <Widget>[
-                          Padding(
-                            child: Text(
-                              '\u{1f4f1} ${_filteredPeers.keys.toList()[indexP]}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+        body: Container(
+          padding: EdgeInsets.only(
+            top: 16,
+            bottom: 16,
+          ),
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+            colors: [Colors.tealAccent, Colors.cyanAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Expanded(
+                child: ListView.builder(
+                  itemBuilder: (context, indexP) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        top: 12,
+                        bottom: 12,
+                        left: 12,
+                        right: 12,
+                      ),
+                      child: Card(
+                        color: Colors.white54,
+                        elevation: 16,
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              child: Text(
+                                '\u{1f4f1} ${_filteredPeers.keys.toList()[indexP]}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textScaleFactor: 1.5,
                               ),
-                              textScaleFactor: 1.5,
+                              padding: EdgeInsets.only(
+                                  top: 16, bottom: 16, left: 8, right: 8),
                             ),
-                            padding: EdgeInsets.only(
-                                top: 16, bottom: 16, left: 8, right: 8),
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height / 4.5,
-                            width: MediaQuery.of(context).size.width * .9,
-                            child: _peerStatus[
-                                        _filteredPeers.keys.toList()[indexP]]
-                                    .isEmpty
-                                ? Center(
-                                    child: Icon(
-                                      IconData(128564),
-                                      size: 75,
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    itemBuilder: (context, indexC) {
-                                      return Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 12,
-                                          right: 12,
-                                          top: 8,
-                                          bottom: 8,
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(18),
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height / 4.5,
+                              width: MediaQuery.of(context).size.width * .9,
+                              child: _peerStatus[
+                                          _filteredPeers.keys.toList()[indexP]]
+                                      .isEmpty
+                                  ? Center(
+                                      child: Icon(
+                                        IconData(128564),
+                                        size: 75,
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      itemBuilder: (context, indexC) {
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 12,
+                                            right: 12,
+                                            top: 8,
+                                            bottom: 8,
                                           ),
-                                          child: Card(
-                                            elevation: 12,
-                                            color: Color(745822),
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                  top: 16,
-                                                  bottom: 16,
-                                                  left: 6,
-                                                  right: 6),
-                                              child: Text(
-                                                _peerStatus[_filteredPeers.keys
-                                                    .toList()[indexP]][indexC],
-                                                style: TextStyle(
-                                                  fontStyle: FontStyle.italic,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(18),
+                                            ),
+                                            child: Card(
+                                              elevation: 12,
+                                              color: Color(745822),
+                                              child: Padding(
+                                                padding: EdgeInsets.only(
+                                                    top: 16,
+                                                    bottom: 16,
+                                                    left: 6,
+                                                    right: 6),
+                                                child: Text(
+                                                  _peerStatus[_filteredPeers
+                                                          .keys
+                                                          .toList()[indexP]]
+                                                      [indexC],
+                                                  style: TextStyle(
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 6,
+                                                  softWrap: true,
+                                                  overflow: TextOverflow.fade,
                                                 ),
-                                                textAlign: TextAlign.center,
-                                                maxLines: 6,
-                                                softWrap: true,
-                                                overflow: TextOverflow.fade,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                    itemCount: _peerStatus[_filteredPeers.keys
-                                            .toList()[indexP]]
-                                        .length,
-                                  ),
-                          ),
-                        ],
-                        mainAxisSize: MainAxisSize.min,
+                                        );
+                                      },
+                                      itemCount: _peerStatus[_filteredPeers.keys
+                                              .toList()[indexP]]
+                                          .length,
+                                    ),
+                            ),
+                          ],
+                          mainAxisSize: MainAxisSize.min,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                itemCount: _filteredPeers.length,
+                    );
+                  },
+                  itemCount: _filteredPeers.length,
+                ),
               ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.75,
-              child: RaisedButton(
-                textColor: Colors.white,
-                // well this place is pretty complicated, cause it uses nested ternary expressions
-                onPressed: widget.peerInfoHolder.type == 'send'
-                    // first checks whether it's send operation
-                    ? _isFileChosen
-                        // well if send, then check whether user has selected files
-                        ? _isTransferOn
-                            // now check if user has started transfer
-                            ? () {
-                                if (!_server.isStopped) {
-                                  _server.stopServer();
-                                  setState(() {
-                                    _isTransferOn = false;
-                                    _isFileChosen = false;
-                                  });
-                                }
-                              }
-                            // or not
-                            : () {
-                                if (_filesToBeTransferred.isNotEmpty) {
-                                  if (_server.isStopped) {
-                                    setState(() {
-                                      _isTransferOn = true;
-                                      _peerStatus.forEach(
-                                          (key, val) => _peerStatus[key] = []);
-                                    });
-                                    _server
-                                        .initServer()
-                                        .then((HttpServer httpServer) {
-                                      httpServer?.listen((HttpRequest request) {
-                                        _server.handleRequest(request);
-                                      }, onDone: () {
-                                        showToast('Server Stopped', 'short');
-                                      }, onError: (e) {
-                                        setState(() {
-                                          _isTransferOn = false;
-                                          _isFileChosen = false;
-                                        });
-                                        print(e.toString());
-                                      }, cancelOnError: true);
-                                    });
-                                  }
-                                }
-                              }
-                        // or not, select files
-                        : () {
-                            initFileChooser().then((filePaths) {
-                              _filesToBeTransferred = filePaths.map((elem) {
-                                if (File(elem).existsSync()) return elem;
-                              }).toList();
-                              if (_filesToBeTransferred.isNotEmpty) {
-                                setState(() => _isFileChosen = true);
-                                _server.filesToBeShared =
-                                    List.from(_filesToBeTransferred);
-                              } else
-                                showToast('Select onDevice Files', 'short');
-                            });
-                          }
-                    // or receive operation
-                    : _isTransferOn
-                        // check if user has started transfer
-                        ? () {
-                            _client.disconnect();
-                            setState(() => _isTransferOn = false);
-                          }
-                        // or not
-                        : () {
-                            String _peerIP;
-                            //int _peerPort;
-                            Client client;
-                            _filteredPeers.forEach((key, val) {
-                              _peerIP = key;
-                              client = Client(key, val);
-                              //_peerPort = val;
-                            });
-                            setState(() {
-                              _isTransferOn = true;
-                              _peerStatus[_peerIP] = ['Connecting to Peer ...'];
-                            });
-
-                            client.connect('/').then((HttpClientRequest req) {
-                              if (req != null) {
-                                setState(() => _peerStatus[_peerIP]
-                                    .add('Retrieving sharable file names ...'));
-                                client
-                                    .fetchFileNames(req)
-                                    .then((List<String> targetFiles) {
-                                  targetFiles.forEach((path) {
-                                    setState(() => _peerStatus[_peerIP].add(
-                                        'Requesting ${pathHandler.basename(path)} ...'));
-                                    client
-                                        .connect(path)
-                                        .then((HttpClientRequest req) {
-                                      if (req != null) {
-                                        setState(() => _peerStatus[_peerIP].add(
-                                            'Fetching ${pathHandler.basename(path)} ...'));
-                                        client
-                                            .fetchFile(
-                                                req,
-                                                pathHandler.join(_targetHomeDir,
-                                                    pathHandler.basename(path)))
-                                            .then((bool isSuccess) {
-                                          if (isSuccess) vibrateDevice();
-                                          setState(() => _peerStatus[_peerIP].add(
-                                              '${isSuccess ? 'Fetched' : 'Failed to fetch'} ${pathHandler.basename(path)}'));
-                                          if (targetFiles.last == path) {
-                                            client.disconnect();
-                                            setState(() {
-                                              _isTransferOn = false;
-                                              _peerStatus[_peerIP]
-                                                  .add('Transfer Complete');
-                                            });
-                                          }
-                                        });
-                                      } else
-                                        setState(() {
-                                          _isTransferOn = false;
-                                          _peerStatus[_peerIP]
-                                              .add('Connection Failed');
-                                        });
-                                    });
-                                  });
-                                  if (targetFiles.isEmpty) {
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.75,
+                child: RaisedButton(
+                  textColor: Colors.white,
+                  // well this place is pretty complicated, cause it uses nested ternary expressions
+                  onPressed: widget.peerInfoHolder.type == 'send'
+                      // first checks whether it's send operation
+                      ? _isFileChosen
+                          // well if send, then check whether user has selected files
+                          ? _isTransferOn
+                              // now check if user has started transfer
+                              ? () {
+                                  if (!_server.isStopped) {
+                                    _server.stop();
                                     setState(() {
                                       _isTransferOn = false;
-                                      _peerStatus[_peerIP].add('Access Denied');
+                                      _isFileChosen = false;
                                     });
-                                    client.disconnect();
                                   }
-                                });
-                              } else
-                                setState(() {
-                                  _isTransferOn = false;
-                                  _peerStatus[_peerIP].add('Connection Failed');
-                                });
-                            });
-                          },
-                child: Text(widget.peerInfoHolder.type == 'send'
-                    ? _isFileChosen
-                        ? _isTransferOn ? 'Abort Transfer' : 'Init Transfer'
-                        : 'Choose File(s)'
-                    : _isTransferOn
-                        ? 'Abort Transfer'
-                        : 'Request File(s) from Peer'),
-                color: _isTransferOn ? Colors.red : Colors.teal,
-                elevation: 20,
-                padding: EdgeInsets.all(6),
+                                }
+                              // or not
+                              : () {
+                                  if (_filesToBeTransferred.isNotEmpty) {
+                                    if (_server.isStopped) {
+                                      setState(() {
+                                        _isTransferOn = true;
+                                        _peerStatus.forEach((key, val) =>
+                                            _peerStatus[key] = []);
+                                      });
+                                      _server.init();
+                                    }
+                                  }
+                                }
+                          // or not, select files
+                          : () {
+                              initFileChooser().then((filePaths) {
+                                _filesToBeTransferred = filePaths.map((elem) {
+                                  if (File(elem).existsSync()) return elem;
+                                }).toList();
+                                if (_filesToBeTransferred.isNotEmpty) {
+                                  setState(() => _isFileChosen = true);
+                                  _server.filesToBeShared =
+                                      List.from(_filesToBeTransferred);
+                                } else
+                                  showToast('Select onDevice Files', 'short');
+                              });
+                            }
+                      // or receive operation
+                      : _isTransferOn
+                          // check if user has started transfer
+                          ? () {
+                              _client.disconnect();
+                              setState(() => _isTransferOn = false);
+                            }
+                          // or not
+                          : () {
+                              String _peerIP;
+                              //int _peerPort;
+                              _filteredPeers.forEach((key, val) {
+                                _peerIP = key;
+                                _client = Client(key, val);
+                                //_peerPort = val;
+                              });
+                              setState(() {
+                                _isTransferOn = true;
+                                _peerStatus[_peerIP] = [
+                                  'Connecting to Peer ...'
+                                ];
+                              });
+                              _client.fetchFileNames().then(
+                                (List<String> fileNames) {
+                                  _filesToBeTransferred = fileNames;
+                                  if (_filesToBeTransferred.isEmpty) {
+                                    setState(() {
+                                      _isTransferOn = false;
+                                      _peerStatus[_peerIP]
+                                          .add('Nothing to fetch');
+                                    });
+                                  } else
+                                    _filesToBeTransferred
+                                        .forEach((String file) {
+                                      setState(() {
+                                        _peerStatus[_peerIP].add(
+                                            'Fetching ${pathHandler.basename(file)}');
+                                      });
+                                      _client
+                                          .fetchFile(file, _targetHomeDir)
+                                          .then(
+                                            (bool success) => setState(() {
+                                                  _peerStatus[_peerIP].add(success
+                                                      ? 'Fetched ${pathHandler.basename(file)}'
+                                                      : 'Failed to fetch ${pathHandler.basename(file)}');
+                                                  if (file ==
+                                                      _filesToBeTransferred
+                                                          .last) {
+                                                    setState(() {
+                                                      _isTransferOn = false;
+                                                      _peerStatus[_peerIP].add(
+                                                          'Transfer Complete');
+                                                    });
+                                                  }
+                                                }),
+                                          );
+                                    });
+                                },
+                                onError: (e) => setState(() {
+                                      _peerStatus[_peerIP]
+                                          .add('Something went wrong');
+                                    }),
+                              );
+                            },
+                  child: Text(widget.peerInfoHolder.type == 'send'
+                      ? _isFileChosen
+                          ? _isTransferOn ? 'Abort Transfer' : 'Init Transfer'
+                          : 'Choose File(s)'
+                      : _isTransferOn
+                          ? 'Abort Transfer'
+                          : 'Request File(s) from Peer'),
+                  color: _isTransferOn ? Colors.red : Colors.teal,
+                  elevation: 20,
+                  padding: EdgeInsets.all(6),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
