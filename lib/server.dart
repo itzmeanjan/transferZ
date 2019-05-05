@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'dart:convert' show utf8;
+import 'dart:convert' show utf8, json;
 import 'package:path/path.dart' as pathHandler;
 
 class Server {
   String _host;
   int _port;
   List<String> _filteredPeers;
-  List<String> filesToBeShared;
+  Map<String, int> filesToBeShared;
   ServerStatusCallBack _serverStatusCallBack;
   bool isStopped = true;
 
@@ -23,49 +23,46 @@ class Server {
           server.listen(
             (Socket socket) {
               if (isAccessGranted(socket.remoteAddress.address)) {
-                _serverStatusCallBack.updateServerStatus(<String, String>{
-                  socket.remoteAddress.address: 'Connected'
-                });
                 socket.listen(
                   (List<int> data) {
                     var decodedData = utf8.decode(data);
                     if (decodedData == '/file') {
-                      socket.write(filesToBeShared.join(';'));
-                      /*_serverStatusCallBack.updateServerStatus(<String, String>{
-                      socket.remoteAddress.address: 'Fetched Sharable File Names'
-                    });*/
+                      socket.write(json.encode(filesToBeShared));
                       socket.close();
-                    } else if (filesToBeShared.contains(decodedData)) {
-                      _serverStatusCallBack.updateServerStatus(<String, String>{
-                        socket.remoteAddress.address:
-                            'Fetching ${pathHandler.basename(decodedData)}'
+                    } else if (filesToBeShared.keys
+                        .toList()
+                        .contains(decodedData)) {
+                      _serverStatusCallBack
+                          .updateServerStatus(<String, Map<String, double>>{
+                        socket.remoteAddress.address: {decodedData: 1}
                       });
                       socket.addStream(File(decodedData).openRead()).then(
                         (val) {
                           _serverStatusCallBack
-                              .updateServerStatus(<String, String>{
-                            socket.remoteAddress.address:
-                                'Fetched ${pathHandler.basename(decodedData)}'
+                              .updateServerStatus(<String, Map<String, double>>{
+                            socket.remoteAddress.address: {decodedData: 100}
                           });
                           socket.close();
                         },
                         onError: (e) => _serverStatusCallBack
-                                .updateServerStatus(<String, String>{
-                              socket.remoteAddress.address:
-                                  'Failed to Fetch ${pathHandler.basename(decodedData)}'
+                                .updateServerStatus(<String,
+                                    Map<String, double>>{
+                              socket.remoteAddress.address: {decodedData: -1}
                             }),
                       );
                     } else {
                       socket.write('Bad Request');
-                      _serverStatusCallBack.updateServerStatus(<String, String>{
-                        socket.remoteAddress.address: 'Bad Request'
+                      _serverStatusCallBack
+                          .updateServerStatus(<String, Map<String, double>>{
+                        socket.remoteAddress.address: {decodedData: -1}
                       });
                       socket.close();
                     }
                   },
                   onError: (e) {
-                    _serverStatusCallBack.updateServerStatus(<String, String>{
-                      socket.remoteAddress.address: 'Critical Error :/'
+                    _serverStatusCallBack
+                        .updateServerStatus(<String, Map<String, double>>{
+                      socket.remoteAddress.address: {'': -1}
                     });
                     socket.close();
                   },
@@ -104,7 +101,7 @@ class Server {
 }
 
 abstract class ServerStatusCallBack {
-  updateServerStatus(Map<String, String> msg);
+  updateServerStatus(Map<String, Map<String, double>> msg);
 
   generalUpdate(String msg);
 }

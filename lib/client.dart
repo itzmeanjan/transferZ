@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:convert' show utf8;
-import 'dart:async' show Completer;
+import 'dart:convert' show utf8, json;
+import 'dart:async' show Completer, Timer;
 import 'package:path/path.dart' as pathHandler;
 
 class Client {
@@ -11,30 +11,46 @@ class Client {
 
   Client(this._peerIP, this._peerPort);
 
-  Future<List<String>> fetchFileNames() {
-    var completer = Completer<List<String>>();
+  Future<Map<String, int>> fetchFileNames() {
+    var completer = Completer<Map<String, int>>();
     Socket.connect(_peerIP, _peerPort).then(
       (Socket socket) {
+        _socket = socket;
         socket.listen(
           (List<int> data) {
             socket.close();
-            completer.complete(utf8.decode(data).split(';'));
+            completer.complete(
+                Map<String, int>.from(json.decode(utf8.decode(data))));
           },
           onError: (e) {
             socket.close();
-            completer.complete([]);
+            completer.complete({});
           },
           cancelOnError: true,
         );
         socket.write('/file');
       },
-      onError: (e) => completer.complete([]),
+      onError: (e) => completer.complete({}),
     );
     return completer.future;
   }
 
-  Future<bool> fetchFile(String fileName, String targetPath) {
+  Future<bool> fetchFile(String fileName, int fileSize, String targetPath) {
     var completer = Completer<bool>();
+    var file =
+        File(pathHandler.join(targetPath, pathHandler.basename(fileName)));
+    var timer = Timer.periodic(
+        Duration(
+          seconds: 1,
+        ), (_timer) {
+      file.exists().then((bool existence) {
+        if (existence)
+          file.length().then((int length) => print(
+              '${fileName.split('/').last} -- ${_timer.tick} -- ${fileFetchedPercentage(fileSize, length)} %'));
+        else
+          print('${fileName.split('/').last} -- ${_timer.tick} -- 0 %');
+      });
+    });
     Socket.connect(_peerIP, _peerPort).then(
       (Socket socket) {
         File(pathHandler.join(targetPath, pathHandler.basename(fileName)))
@@ -43,10 +59,12 @@ class Client {
             .then(
           (val) {
             socket.close();
+            timer.cancel();
             completer.complete(true);
           },
           onError: (e) {
             socket.close();
+            timer.cancel();
             completer.complete(false);
           },
         );
@@ -56,6 +74,9 @@ class Client {
     );
     return completer.future;
   }
+
+  double fileFetchedPercentage(int totalSize, int fetchedSize) =>
+      fetchedSize * 100 / totalSize;
 
   disconnect() => _socket?.close();
 }

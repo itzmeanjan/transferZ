@@ -21,10 +21,11 @@ class Sender extends StatefulWidget {
 class _SenderState extends State<Sender> implements ServerStatusCallBack {
   Map<String, int>
       _filteredPeers; // PEERs which are going to take part in transfer
-  List<String> _filesToBeTransferred; // files to be transferred
+  Map<String, int> _filesToBeTransferred; // files to be transferred
   Server _server; // server object
   Client _client; // client Object
-  Map<String, List<String>> _peerStatus; // keeps track of status of PEER
+  Map<String, List<Map<String, double>>>
+      _peerStatus; // keeps track of status of PEER
   String
       _targetHomeDir; // gets directory path, where to store files, fetched from PEER
   bool _isFileChosen; // helps to update UI
@@ -34,7 +35,7 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
   @override
   void initState() {
     super.initState();
-    _filesToBeTransferred = [];
+    _filesToBeTransferred = <String, int>{};
     _serverSideDownloadCount = 0;
     _isFileChosen = false; // at first no file chosen
     _isTransferOn = false; // at first, transfer not started
@@ -60,15 +61,14 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
     _client?.disconnect();
   }
 
-  Map<String, int> filterEligiblePeers() {
-    // As user has to explicitly select certain device identifier(s), check performed to test it, otherwise gets discarded
-    return widget.peerInfoHolder.getPeers().map((key, val) {
-      if (widget.peerInfoHolder.getSelectedPeers()[key]) {
-        _peerStatus[key] = [];
-        return MapEntry(key, val);
-      }
-    });
-  }
+  Map<String, int> filterEligiblePeers() =>
+      // As user has to explicitly select certain device identifier(s), check performed to test it, otherwise gets discarded
+      widget.peerInfoHolder.getPeers().map((key, val) {
+        if (widget.peerInfoHolder.getSelectedPeers()[key]) {
+          _peerStatus[key] = [];
+          return MapEntry(key, val);
+        }
+      });
 
   @override
   updateServerStatus(Map<String, String> msg) {
@@ -85,7 +85,7 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
         // indicates completion of full transfer, when working as Server
         _isTransferOn = false;
         _isFileChosen = false;
-        _filesToBeTransferred = [];
+        _filesToBeTransferred = {};
       });
       vibrateDevice();
     }
@@ -270,13 +270,19 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
                           // or not, select files
                           : () {
                               initFileChooser().then((filePaths) {
-                                _filesToBeTransferred = filePaths.map((elem) {
-                                  if (File(elem).existsSync()) return elem;
-                                }).toList();
+                                _filesToBeTransferred = Map.fromEntries(
+                                    filePaths
+                                        .map((elem) {
+                                          if (File(elem).existsSync())
+                                            return elem;
+                                        })
+                                        .toList()
+                                        .map((e) =>
+                                            MapEntry(e, File(e).lengthSync())));
                                 if (_filesToBeTransferred.isNotEmpty) {
                                   setState(() => _isFileChosen = true);
                                   _server.filesToBeShared =
-                                      List.from(_filesToBeTransferred);
+                                      Map.from(_filesToBeTransferred);
                                 } else
                                   showToast('Select onDevice Files', 'short');
                               });
@@ -304,7 +310,7 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
                                 ];
                               });
                               _client.fetchFileNames().then(
-                                (List<String> fileNames) {
+                                (Map<String, int> fileNames) {
                                   _filesToBeTransferred = fileNames;
                                   if (_filesToBeTransferred.isEmpty) {
                                     setState(() {
@@ -314,20 +320,22 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
                                     });
                                   } else
                                     _filesToBeTransferred
-                                        .forEach((String file) {
+                                        .forEach((String file, int fileSize) {
                                       setState(() {
                                         _peerStatus[_peerIP].add(
                                             'Fetching ${pathHandler.basename(file)}');
                                       });
                                       _client
-                                          .fetchFile(file, _targetHomeDir)
+                                          .fetchFile(
+                                              file, fileSize, _targetHomeDir)
                                           .then(
                                             (bool success) => setState(() {
                                                   _peerStatus[_peerIP].add(success
                                                       ? 'Fetched ${pathHandler.basename(file)}'
                                                       : 'Failed to fetch ${pathHandler.basename(file)}');
                                                   if (file ==
-                                                      _filesToBeTransferred
+                                                      _filesToBeTransferred.keys
+                                                          .toList()
                                                           .last) {
                                                     setState(() {
                                                       _isTransferOn = false;
