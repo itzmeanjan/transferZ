@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 class TransferProgressWidget extends StatefulWidget {
   String peerName;
-  Map<String, String> fileStat;
-  TransferProgressWidget({Key key, this.peerName}) : super(key: key);
+  String peerStat;
+  Map<String, double> transferStat;
+  TransferProgressWidget(
+      {Key key, this.peerName, this.peerStat, this.transferStat})
+      : super(key: key);
   @override
   _TransferProgressWidget createState() => _TransferProgressWidget();
 }
@@ -32,7 +35,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
               SizedBox(
                 height: MediaQuery.of(context).size.height / 4.5,
                 width: MediaQuery.of(context).size.width * .9,
-                child: widget.fileStat.isEmpty
+                child: widget.transferStat.isEmpty
                     ? Center(
                         child: CircularProgressIndicator(
                           backgroundColor: Colors.teal,
@@ -42,24 +45,40 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
                     : ListView.builder(
                         itemBuilder: (context, index) => Padding(
                               padding: EdgeInsets.only(
-                                left: 12,
-                                right: 12,
-                                top: 8,
-                                bottom: 8,
+                                left: 6,
+                                right: 6,
+                                top: 4,
+                                bottom: 4,
                               ),
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: <Widget>[
                                   LinearProgressIndicator(
                                     backgroundColor: Colors.lightBlueAccent,
+                                    value: widget.transferStat.values
+                                        .toList()[index],
                                   ),
                                   Text(
-                                      '${widget.fileStat.keys.toList()[index]}'),
+                                    '${widget.transferStat.keys.toList()[index]}',
+                                    overflow: TextOverflow.fade,
+                                  ),
                                 ],
                               ),
                             ),
-                        itemCount: widget.fileStat.length,
+                        itemCount: widget.transferStat.keys.length,
                       ),
+              ),
+              Padding(
+                child: Text(
+                  '${widget.peerStatus}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textScaleFactor: 1.2,
+                ),
+                padding:
+                    EdgeInsets.only(top: 16, bottom: 16, left: 8, right: 8),
               ),
             ],
           ),

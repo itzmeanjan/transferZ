@@ -6,26 +6,29 @@ import 'client.dart';
 import 'dart:io' show File, InternetAddress;
 import 'package:path/path.dart' as pathHandler;
 import 'dart:io';
+import 'transfer_widget.dart';
 
-class Sender extends StatefulWidget {
+class Transfer extends StatefulWidget {
   final MethodChannel methodChannel;
   final PeerInfoHolder peerInfoHolder;
 
-  Sender({Key key, @required this.methodChannel, @required this.peerInfoHolder})
+  Transfer(
+      {Key key, @required this.methodChannel, @required this.peerInfoHolder})
       : super(key: key);
 
   @override
-  _SenderState createState() => _SenderState();
+  _TransferState createState() => _TransferState();
 }
 
-class _SenderState extends State<Sender> implements ServerStatusCallBack {
+class _TransferState extends State<Transfer> implements ServerStatusCallBack {
   Map<String, int>
       _filteredPeers; // PEERs which are going to take part in transfer
   Map<String, int> _filesToBeTransferred; // files to be transferred
   Server _server; // server object
   Client _client; // client Object
-  Map<String, List<Map<String, double>>>
-      _peerStatus; // keeps track of status of PEER
+  Map<String, Map<String, double>>
+      _transferStatus; // keeps track of status of transfer
+  Map<String, String> _peerStatus; // keeps track of PEER's status
   String
       _targetHomeDir; // gets directory path, where to store files, fetched from PEER
   bool _isFileChosen; // helps to update UI
@@ -40,6 +43,7 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
     _isFileChosen = false; // at first no file chosen
     _isTransferOn = false; // at first, transfer not started
     _peerStatus = {};
+    _transferStatus = {};
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
       // instance of Server created, which listens on 0.0.0.0:8000
@@ -143,94 +147,15 @@ class _SenderState extends State<Sender> implements ServerStatusCallBack {
             children: <Widget>[
               Expanded(
                 child: ListView.builder(
-                  itemBuilder: (context, indexP) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        top: 12,
-                        bottom: 12,
-                        left: 12,
-                        right: 12,
+                  itemBuilder: (context, indexP) => TransferProgressWidget(
+                        peerName: _filteredPeers.keys.toList()[indexP],
+                        peerStat:
+                            _peerStatus[_filteredPeers.keys.toList()[indexP]] ??
+                                'NA',
+                        transferStat: _transferStatus[
+                                _filteredPeers.keys.toList()[indexP]] ??
+                            {},
                       ),
-                      child: Card(
-                        color: Colors.white54,
-                        elevation: 16,
-                        child: Column(
-                          children: <Widget>[
-                            Padding(
-                              child: Text(
-                                '\u{1f4f1} ${_filteredPeers.keys.toList()[indexP]}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textScaleFactor: 1.5,
-                              ),
-                              padding: EdgeInsets.only(
-                                  top: 16, bottom: 16, left: 8, right: 8),
-                            ),
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height / 4.5,
-                              width: MediaQuery.of(context).size.width * .9,
-                              child: _peerStatus[
-                                          _filteredPeers.keys.toList()[indexP]]
-                                      .isEmpty
-                                  ? Center(
-                                      child: Icon(
-                                        IconData(128564),
-                                        size: 75,
-                                      ),
-                                    )
-                                  : ListView.builder(
-                                      itemBuilder: (context, indexC) {
-                                        return Padding(
-                                          padding: EdgeInsets.only(
-                                            left: 12,
-                                            right: 12,
-                                            top: 8,
-                                            bottom: 8,
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(18),
-                                            ),
-                                            child: Card(
-                                              elevation: 12,
-                                              color: Color(745822),
-                                              child: Padding(
-                                                padding: EdgeInsets.only(
-                                                    top: 16,
-                                                    bottom: 16,
-                                                    left: 6,
-                                                    right: 6),
-                                                child: Text(
-                                                  _peerStatus[_filteredPeers
-                                                          .keys
-                                                          .toList()[indexP]]
-                                                      [indexC],
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.italic,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 6,
-                                                  softWrap: true,
-                                                  overflow: TextOverflow.fade,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      itemCount: _peerStatus[_filteredPeers.keys
-                                              .toList()[indexP]]
-                                          .length,
-                                    ),
-                            ),
-                          ],
-                          mainAxisSize: MainAxisSize.min,
-                        ),
-                      ),
-                    );
-                  },
                   itemCount: _filteredPeers.length,
                 ),
               ),

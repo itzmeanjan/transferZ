@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'service_advertising.dart';
 import 'service_discovery.dart';
 import 'package:flutter/services.dart' show MethodChannel;
-import 'transfer.dart' show Sender;
+import 'transfer.dart';
 
 class PeerFinder extends StatefulWidget {
   final String type;
@@ -210,7 +210,7 @@ class _PeerFinderState extends State<PeerFinder>
                       onPressed: checkIfAtLeastOneIsSelected()
                           ? () {
                               Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Sender(
+                                  builder: (context) => Transfer(
                                       methodChannel: widget.methodChannel,
                                       peerInfoHolder: _peerInfoHolder)));
                             }
