@@ -21,7 +21,7 @@ class DiscoverService {
         if (datagram != null) {
           _foundServiceCallBack.foundService(
               datagram.address.host, datagram.port);
-          _rawDatagramSocket.close();
+          //_rawDatagramSocket.close();
         }
       }
     });

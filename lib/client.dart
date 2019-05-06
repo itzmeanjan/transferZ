@@ -6,10 +6,11 @@ import 'package:path/path.dart' as pathHandler;
 class Client {
   String _peerIP;
   int _peerPort;
+  ClientStatusCallBack _clientStatusCallBack;
 
   Socket _socket;
 
-  Client(this._peerIP, this._peerPort);
+  Client(this._peerIP, this._peerPort, this._clientStatusCallBack);
 
   Future<Map<String, int>> fetchFileNames() {
     var completer = Completer<Map<String, int>>();
@@ -45,14 +46,16 @@ class Client {
         ), (_timer) {
       file.exists().then((bool existence) {
         if (existence)
-          file.length().then((int length) => print(
-              '${fileName.split('/').last} -- ${_timer.tick} -- ${fileFetchedPercentage(fileSize, length)} %'));
+          file.length().then((int length) => _clientStatusCallBack
+              .updateTransferStatusClientSide(
+                  {fileName: fileFetchedPercentage(fileSize, length)}));
         else
-          print('${fileName.split('/').last} -- ${_timer.tick} -- 0 %');
+          _clientStatusCallBack.updateTransferStatusClientSide({fileName: 0});
       });
     });
     Socket.connect(_peerIP, _peerPort).then(
       (Socket socket) {
+        _socket = socket;
         File(pathHandler.join(targetPath, pathHandler.basename(fileName)))
             .openWrite(mode: FileMode.write)
             .addStream(socket)
@@ -60,6 +63,7 @@ class Client {
           (val) {
             socket.close();
             timer.cancel();
+            _clientStatusCallBack.updateTransferStatusClientSide({fileName: 100});
             completer.complete(true);
           },
           onError: (e) {
@@ -79,4 +83,8 @@ class Client {
       fetchedSize * 100 / totalSize;
 
   disconnect() => _socket?.close();
+}
+
+abstract class ClientStatusCallBack {
+  updateTransferStatusClientSide(Map<String, double> stat);
 }

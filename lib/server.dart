@@ -31,7 +31,7 @@ class Server {
                     if (decodedData == '/file') {
                       socket.write(json.encode(filesToBeShared));
                       _serverStatusCallBack.updatePeerStatus(
-                          {socket.remoteAddress.address: 'Fetched file names'});
+                          {socket.remoteAddress.address: 'Fetched File Names'});
                       socket.close();
                     } else if (filesToBeShared.keys
                         .toList()
@@ -42,6 +42,8 @@ class Server {
                           decodedData: 1
                         } // 1 denotes transfer has started
                       });
+                      _serverStatusCallBack.updatePeerStatus(
+                          {socket.remoteAddress.address: 'Fetching Files'});
                       socket.addStream(File(decodedData).openRead()).then(
                         (val) {
                           _serverStatusCallBack.updateTransferStatus(<String,

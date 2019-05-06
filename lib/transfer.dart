@@ -4,7 +4,6 @@ import 'package:flutter/services.dart' show MethodChannel;
 import 'server.dart';
 import 'client.dart';
 import 'dart:io' show File, InternetAddress;
-import 'package:path/path.dart' as pathHandler;
 import 'dart:io';
 import 'transfer_widget.dart';
 
@@ -20,7 +19,8 @@ class Transfer extends StatefulWidget {
   _TransferState createState() => _TransferState();
 }
 
-class _TransferState extends State<Transfer> implements ServerStatusCallBack {
+class _TransferState extends State<Transfer>
+    implements ServerStatusCallBack, ClientStatusCallBack {
   Map<String, int>
       _filteredPeers; // PEERs which are going to take part in transfer
   Map<String, int> _filesToBeTransferred; // files to be transferred
@@ -34,6 +34,7 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
   bool _isFileChosen; // helps to update UI
   bool _isTransferOn; // helps to update UI
   int _serverSideDownloadCount;
+  Map<String, TransferProgressWidget> _transferProgressWidgets;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
     _isTransferOn = false; // at first, transfer not started
     _peerStatus = {};
     _transferStatus = {};
+    _transferProgressWidgets = {};
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
       // instance of Server created, which listens on 0.0.0.0:8000
@@ -68,37 +70,42 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
   Map<String, int> filterEligiblePeers() =>
       // As user has to explicitly select certain device identifier(s), check performed to test it, otherwise gets discarded
       widget.peerInfoHolder.getPeers().map((key, val) {
-        if (widget.peerInfoHolder.getSelectedPeers()[key]) {
-          _peerStatus[key] = [];
+        if (widget.peerInfoHolder.getSelectedPeers()[key])
           return MapEntry(key, val);
-        }
       });
 
+  /// server side callback starts here
   @override
-  updateServerStatus(Map<String, String> msg) {
-    // mostly lets user know about PEER's activity
-    msg.forEach((key, val) {
-      setState(() {
-        _peerStatus[key].add(val);
+  updatePeerStatus(Map<String, String> stat) => stat.forEach((key, val) =>
+      setState(() => _transferProgressWidgets[key].peerStat = val));
+
+  @override
+  updateTransferStatus(Map<String, Map<String, double>> stat) =>
+      stat.forEach((key, val) {
+        val.forEach((keyInner, valInner) {
+          if ([100, -1].contains(valInner.ceil()))
+            _serverSideDownloadCount += 1;
+          setState(() {
+            _transferProgressWidgets[key].transferStat[keyInner] = valInner;
+            if (_serverSideDownloadCount == _filesToBeTransferred.length) {
+              _isFileChosen = false;
+              _isTransferOn = false;
+            }
+          });
+        });
       });
-      _serverSideDownloadCount += val.startsWith('Fetched ') ? 1 : 0;
-    });
-    if (_serverSideDownloadCount ==
-        _filteredPeers.length * _filesToBeTransferred.length) {
-      setState(() {
-        // indicates completion of full transfer, when working as Server
-        _isTransferOn = false;
-        _isFileChosen = false;
-        _filesToBeTransferred = {};
-      });
-      vibrateDevice();
-    }
-  }
 
   @override
   generalUpdate(String msg) =>
       // in case of general update, this callback is mostly invoked to let user know about SELF status, when device is in `send` mode.
       showToast(msg, 'short');
+  // server side callback ends here
+
+  /// client side callback
+  @override
+  updateTransferStatusClientSide(Map<String, double> stat) => _filteredPeers
+      .forEach((key, val) => stat.forEach((keyInner, valInner) => setState(() =>
+          _transferProgressWidgets[key].transferStat[keyInner] = valInner)));
 
   Future<String> getHomeDir() async =>
       // fetches path to homeDir, actually this is the directory where I'm going to store all files, fetched from any PEER
@@ -147,15 +154,21 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
             children: <Widget>[
               Expanded(
                 child: ListView.builder(
-                  itemBuilder: (context, indexP) => TransferProgressWidget(
-                        peerName: _filteredPeers.keys.toList()[indexP],
-                        peerStat:
-                            _peerStatus[_filteredPeers.keys.toList()[indexP]] ??
-                                'NA',
-                        transferStat: _transferStatus[
-                                _filteredPeers.keys.toList()[indexP]] ??
-                            {},
-                      ),
+                  itemBuilder: (context, indexP) {
+                    _transferProgressWidgets[_filteredPeers.keys
+                        .toList()[indexP]] = TransferProgressWidget(
+                      peerName: _filteredPeers.keys.toList()[indexP],
+                      peerStat:
+                          _peerStatus[_filteredPeers.keys.toList()[indexP]] ??
+                              'NA',
+                      transferStat: _transferStatus[
+                              _filteredPeers.keys.toList()[indexP]] ??
+                          {},
+                    );
+                    return _transferProgressWidgets[_filteredPeers.keys
+                            .toList()[
+                        indexP]]; // stores a reference to transfer progress widget and returns same reference
+                  },
                   itemCount: _filteredPeers.length,
                 ),
               ),
@@ -183,11 +196,7 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
                               : () {
                                   if (_filesToBeTransferred.isNotEmpty) {
                                     if (_server.isStopped) {
-                                      setState(() {
-                                        _isTransferOn = true;
-                                        _peerStatus.forEach((key, val) =>
-                                            _peerStatus[key] = []);
-                                      });
+                                      setState(() => _isTransferOn = true);
                                       _server.init();
                                     }
                                   }
@@ -225,14 +234,13 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
                               //int _peerPort;
                               _filteredPeers.forEach((key, val) {
                                 _peerIP = key;
-                                _client = Client(key, val);
+                                _client = Client(key, val, this);
                                 //_peerPort = val;
                               });
                               setState(() {
                                 _isTransferOn = true;
-                                _peerStatus[_peerIP] = [
-                                  'Connecting to Peer ...'
-                                ];
+                                _transferProgressWidgets[_peerIP].peerStat =
+                                    'Connecting to Peer';
                               });
                               _client.fetchFileNames().then(
                                 (Map<String, int> fileNames) {
@@ -240,32 +248,31 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
                                   if (_filesToBeTransferred.isEmpty) {
                                     setState(() {
                                       _isTransferOn = false;
-                                      _peerStatus[_peerIP]
-                                          .add('Nothing to fetch');
+                                      _transferProgressWidgets[_peerIP]
+                                          .peerStat = 'Peer sharing nothing';
                                     });
                                   } else
                                     _filesToBeTransferred
                                         .forEach((String file, int fileSize) {
                                       setState(() {
-                                        _peerStatus[_peerIP].add(
-                                            'Fetching ${pathHandler.basename(file)}');
+                                        _transferProgressWidgets[_peerIP]
+                                            .peerStat = 'Fetching files';
                                       });
                                       _client
                                           .fetchFile(
                                               file, fileSize, _targetHomeDir)
                                           .then(
                                             (bool success) => setState(() {
-                                                  _peerStatus[_peerIP].add(success
-                                                      ? 'Fetched ${pathHandler.basename(file)}'
-                                                      : 'Failed to fetch ${pathHandler.basename(file)}');
                                                   if (file ==
                                                       _filesToBeTransferred.keys
                                                           .toList()
                                                           .last) {
                                                     setState(() {
                                                       _isTransferOn = false;
-                                                      _peerStatus[_peerIP].add(
-                                                          'Transfer Complete');
+                                                      _transferProgressWidgets[
+                                                                  _peerIP]
+                                                              .peerStat =
+                                                          'Transfer Complete';
                                                     });
                                                   }
                                                 }),
@@ -273,8 +280,8 @@ class _TransferState extends State<Transfer> implements ServerStatusCallBack {
                                     });
                                 },
                                 onError: (e) => setState(() {
-                                      _peerStatus[_peerIP]
-                                          .add('Something went wrong');
+                                      _transferProgressWidgets[_peerIP]
+                                          .peerStat = 'Transfer Failed';
                                     }),
                               );
                             },

@@ -56,7 +56,15 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
                                   LinearProgressIndicator(
                                     backgroundColor: Colors.lightBlueAccent,
                                     value: widget.transferStat.values
-                                        .toList()[index],
+                                                .toList()[index] ==
+                                            -1
+                                        ? null
+                                        : widget.transferStat.values
+                                                    .toList()[index] ==
+                                                1
+                                            ? null
+                                            : widget.transferStat.values
+                                                .toList()[index],
                                   ),
                                   Text(
                                     '${widget.transferStat.keys.toList()[index]}',
@@ -70,7 +78,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
               ),
               Padding(
                 child: Text(
-                  '${widget.peerStatus}',
+                  '${widget.peerStat}',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
