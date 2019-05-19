@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:io';
 import 'peer_finder.dart' show PeerFinder;
 
@@ -18,6 +19,7 @@ class _MyHomeState extends State<MyHome> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
     _methodChannelName = 'io.github.itzmeanjan.transferz';
     _methodChannel = MethodChannel(_methodChannelName);
     _isPermissionAvailable = false;
@@ -91,13 +93,7 @@ class _MyHomeState extends State<MyHome> {
 
   createDirectory(String dirName) {
     Directory directory = Directory(dirName);
-    directory.exists().then((val) {
-      if (!val) {
-        directory.create().then((value) {
-          print('directory created -- ${value.path}');
-        });
-      }
-    });
+    directory.exists().then((val) => !val ? directory.create() : null);
   }
 
   @override
@@ -105,25 +101,30 @@ class _MyHomeState extends State<MyHome> {
     return !_isPermissionAvailable
         ? Scaffold(
             appBar: AppBar(
-              title: Text('transferZ'),
-              backgroundColor: Colors.tealAccent,
-              elevation: 16,
+              title: Image.asset(
+                'logo/logotype-horizontal.png',
+              ),
+              centerTitle: true,
             ),
-            backgroundColor: Colors.grey,
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(
-                    Icons.sentiment_dissatisfied,
-                    size: 100,
+                  Padding(
+                    child: Icon(
+                      IconData(0x1f644),
+                      semanticLabel: 'Confused',
+                    ),
+                    padding: EdgeInsets.all(
+                      12,
+                    ),
                   ),
                   Text(
                     _initText,
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        fontStyle: FontStyle.italic),
+                      color: Colors.cyanAccent,
+                      letterSpacing: 2,
+                    ),
                   ),
                 ],
               ),
@@ -132,23 +133,16 @@ class _MyHomeState extends State<MyHome> {
               onPressed: floatingActionButtonCallBack,
               child: Icon(Icons.sd_storage),
               tooltip: 'Grant Storage Access',
-              elevation: 16,
-              backgroundColor: Colors.teal,
             ),
           )
         : Scaffold(
             appBar: AppBar(
-              title: Text('transferZ'),
-              backgroundColor: Colors.tealAccent,
-              elevation: 16,
+              title: Image.asset(
+                'logo/logotype-horizontal.png',
+              ),
+              centerTitle: true,
             ),
             body: Container(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                colors: [Colors.tealAccent, Colors.cyanAccent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )),
               child: Align(
                 alignment: Alignment.center,
                 child: Row(
@@ -159,7 +153,7 @@ class _MyHomeState extends State<MyHome> {
                       splashColor: Colors.white,
                       icon: Icon(
                         Icons.file_upload,
-                        color: Colors.cyan,
+                        color: Colors.cyanAccent,
                       ),
                       onPressed: () => isConnected().then((val) {
                             if (val)
@@ -180,7 +174,7 @@ class _MyHomeState extends State<MyHome> {
                       iconSize: 75,
                       icon: Icon(
                         Icons.file_download,
-                        color: Colors.teal,
+                        color: Colors.tealAccent,
                       ),
                       onPressed: () => isConnected().then((val) {
                             if (val)

@@ -11,23 +11,40 @@ class TransferProgressWidget extends StatefulWidget {
   _TransferProgressWidget createState() => _TransferProgressWidget();
 }
 
-class _TransferProgressWidget extends State<TransferProgressWidget> {
+class _TransferProgressWidget extends State<TransferProgressWidget>
+    with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.all(12),
         child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(36),
+            side: BorderSide(
+              color: Colors.cyanAccent,
+              style: BorderStyle.solid,
+              width: .25,
+            ),
+          ),
           elevation: 16,
+          color: Colors.black,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Padding(
-                child: Text(
-                  '\u{1f4f1} ${widget.peerName}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                child: Chip(
+                  avatar: Icon(
+                    Icons.devices_other,
                   ),
-                  textScaleFactor: 1.5,
+                  backgroundColor: Colors.tealAccent,
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 4,
+                    bottom: 4,
+                  ),
+                  label: Text(
+                    widget.peerName,
+                  ),
                 ),
                 padding:
                     EdgeInsets.only(top: 16, bottom: 16, left: 8, right: 8),
@@ -38,8 +55,17 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
                 child: widget.transferStat.isEmpty
                     ? Center(
                         child: CircularProgressIndicator(
-                          backgroundColor: Colors.teal,
-                          strokeWidth: 2,
+                          valueColor: Tween<Color>(
+                            begin: Colors.greenAccent,
+                            end: Colors.green,
+                          ).animate(
+                            AnimationController(
+                              vsync: this,
+                              duration: Duration(
+                                microseconds: 100,
+                              ),
+                            ),
+                          ),
                         ),
                       )
                     : ListView.builder(
@@ -77,16 +103,27 @@ class _TransferProgressWidget extends State<TransferProgressWidget> {
                       ),
               ),
               Padding(
-                child: Text(
-                  '${widget.peerStat}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                child: Chip(
+                  backgroundColor: Colors.limeAccent,
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 4,
+                    bottom: 4,
                   ),
-                  textScaleFactor: 1.2,
+                  avatar: Icon(
+                    Icons.new_releases,
+                  ),
+                  label: Text(
+                    widget.peerStat,
+                  ),
                 ),
-                padding:
-                    EdgeInsets.only(top: 16, bottom: 16, left: 8, right: 8),
+                padding: EdgeInsets.only(
+                  top: 8,
+                  bottom: 8,
+                  left: 16,
+                  right: 16,
+                ),
               ),
             ],
           ),

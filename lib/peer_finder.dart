@@ -16,6 +16,7 @@ class PeerFinder extends StatefulWidget {
 }
 
 class _PeerFinderState extends State<PeerFinder>
+    with TickerProviderStateMixin
     implements FoundClientCallBack, FoundServiceCallBack {
   PeerInfoHolder _peerInfoHolder;
   AdvertiseService _advertiseService;
@@ -81,9 +82,10 @@ class _PeerFinderState extends State<PeerFinder>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Finding Peers ...'),
-        backgroundColor: Colors.tealAccent,
-        elevation: 16,
+        title: Image.asset(
+          'logo/logotype-horizontal.png',
+        ),
+        centerTitle: true,
       ),
       body: Container(
         padding: EdgeInsets.only(
@@ -92,17 +94,17 @@ class _PeerFinderState extends State<PeerFinder>
         ),
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-          colors: [Colors.tealAccent, Colors.cyanAccent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )),
         child: _peerInfoHolder._peers.length == 0
             ? Center(
                 child: CircularProgressIndicator(
-                backgroundColor: Colors.white,
-              ))
+                  valueColor: Tween<Color>(
+                    begin: Colors.tealAccent,
+                    end: Colors.teal,
+                  ).animate(
+                    AnimationController(vsync: this),
+                  ),
+                ),
+              )
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -113,6 +115,14 @@ class _PeerFinderState extends State<PeerFinder>
                         return Padding(
                           padding: EdgeInsets.only(top: 12, bottom: 12),
                           child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(36),
+                              side: BorderSide(
+                                color: Colors.white30,
+                                style: BorderStyle.solid,
+                                width: .5,
+                              ),
+                            ),
                             color: _peerInfoHolder._isPeerSelected[
                                         _peerInfoHolder._peers.keys
                                             .toList()[index]] ==
@@ -130,13 +140,14 @@ class _PeerFinderState extends State<PeerFinder>
                                     ),
                                     child: Text(
                                       '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
+                                      overflow: TextOverflow.fade,
                                     ),
                                   ),
                                   flex: 1,
                                 ),
                                 IconButton(
                                   tooltip: 'Connect to Peer',
-                                  disabledColor: Colors.white,
+                                  disabledColor: Colors.grey,
                                   color: Colors.green,
                                   icon: Icon(
                                     Icons.check_circle,
@@ -174,7 +185,7 @@ class _PeerFinderState extends State<PeerFinder>
                                 ),
                                 IconButton(
                                   tooltip: 'Don\'t Connect to Peer',
-                                  disabledColor: Colors.white,
+                                  disabledColor: Colors.grey,
                                   color: Colors.red,
                                   icon: Icon(
                                     Icons.cancel,
@@ -203,24 +214,40 @@ class _PeerFinderState extends State<PeerFinder>
                       itemCount: _peerInfoHolder._peers.length,
                     ),
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * .5,
-                    child: RaisedButton(
-                      textColor: Colors.white,
-                      onPressed: checkIfAtLeastOneIsSelected()
-                          ? () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Transfer(
-                                      methodChannel: widget.methodChannel,
-                                      peerInfoHolder: _peerInfoHolder)));
-                            }
-                          : null,
-                      child: Text('Transfer'),
-                      color: Colors.teal,
-                      disabledColor: Colors.grey,
-                      elevation: 20,
-                      padding: EdgeInsets.all(6),
+                  GestureDetector(
+                    child: Chip(
+                      backgroundColor: checkIfAtLeastOneIsSelected()
+                          ? Colors.tealAccent
+                          : Colors.grey,
+                      labelPadding: EdgeInsets.only(
+                        left: 6,
+                        right: 12,
+                        top: 3,
+                        bottom: 3,
+                      ),
+                      padding: EdgeInsets.only(
+                        left: 4,
+                        right: 4,
+                      ),
+                      label: Text(
+                        widget.type == 'send'
+                            ? 'Send to Peers'
+                            : 'Receive from Peer',
+                      ),
+                      avatar: Icon(
+                        widget.type == 'send'
+                            ? Icons.cloud_upload
+                            : Icons.cloud_download,
+                      ),
                     ),
+                    onTap: checkIfAtLeastOneIsSelected()
+                        ? () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => Transfer(
+                                    methodChannel: widget.methodChannel,
+                                    peerInfoHolder: _peerInfoHolder)));
+                          }
+                        : null,
                   ),
                 ],
               ),
@@ -236,14 +263,10 @@ class _PeerFinderState extends State<PeerFinder>
                 _advertiseService.advertise();
               }
             : () {
-                setState(() {
-                  _peerInfoHolder._peers = {};
-                });
+                setState(() => _peerInfoHolder._peers = {});
                 _discoverService.discoverAndReport();
               },
-        backgroundColor: Colors.tealAccent,
         child: Icon(Icons.refresh),
-        elevation: 16,
         tooltip: 'Refresh Peer-List',
       ),
     );

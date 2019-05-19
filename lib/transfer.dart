@@ -132,9 +132,10 @@ class _TransferState extends State<Transfer>
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: Text('transferZ'),
-          backgroundColor: Colors.tealAccent,
-          elevation: 16,
+          title: Image.asset(
+            'logo/logotype-horizontal.png',
+          ),
+          centerTitle: true,
         ),
         body: Container(
           padding: EdgeInsets.only(
@@ -143,12 +144,6 @@ class _TransferState extends State<Transfer>
           ),
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-            colors: [Colors.tealAccent, Colors.cyanAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -172,130 +167,140 @@ class _TransferState extends State<Transfer>
                   itemCount: _filteredPeers.length,
                 ),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.75,
-                child: RaisedButton(
-                  textColor: Colors.white,
-                  // well this place is pretty complicated, cause it uses nested ternary expressions
-                  onPressed: widget.peerInfoHolder.type == 'send'
-                      // first checks whether it's send operation
-                      ? _isFileChosen
-                          // well if send, then check whether user has selected files
-                          ? _isTransferOn
-                              // now check if user has started transfer
-                              ? () {
-                                  if (!_server.isStopped) {
-                                    _server.stop();
-                                    setState(() {
-                                      _isTransferOn = false;
-                                      _isFileChosen = false;
-                                    });
-                                  }
-                                }
-                              // or not
-                              : () {
-                                  if (_filesToBeTransferred.isNotEmpty) {
-                                    if (_server.isStopped) {
-                                      setState(() => _isTransferOn = true);
-                                      _server.init();
-                                    }
-                                  }
-                                }
-                          // or not, select files
-                          : () {
-                              initFileChooser().then((filePaths) {
-                                _filesToBeTransferred = Map.fromEntries(
-                                    filePaths
-                                        .map((elem) {
-                                          if (File(elem).existsSync())
-                                            return elem;
-                                        })
-                                        .toList()
-                                        .map((e) =>
-                                            MapEntry(e, File(e).lengthSync())));
-                                if (_filesToBeTransferred.isNotEmpty) {
-                                  setState(() => _isFileChosen = true);
-                                  _server.filesToBeShared =
-                                      Map.from(_filesToBeTransferred);
-                                } else
-                                  showToast('Select onDevice Files', 'short');
-                              });
-                            }
-                      // or receive operation
-                      : _isTransferOn
-                          // check if user has started transfer
-                          ? () {
-                              _client.disconnect();
-                              setState(() => _isTransferOn = false);
-                            }
-                          // or not
-                          : () {
-                              String _peerIP;
-                              //int _peerPort;
-                              _filteredPeers.forEach((key, val) {
-                                _peerIP = key;
-                                _client = Client(key, val, this);
-                                //_peerPort = val;
-                              });
-                              setState(() {
-                                _isTransferOn = true;
-                                _transferProgressWidgets[_peerIP].peerStat =
-                                    'Connecting to Peer';
-                              });
-                              _client.fetchFileNames().then(
-                                (Map<String, int> fileNames) {
-                                  _filesToBeTransferred = fileNames;
-                                  if (_filesToBeTransferred.isEmpty) {
-                                    setState(() {
-                                      _isTransferOn = false;
-                                      _transferProgressWidgets[_peerIP]
-                                          .peerStat = 'Peer sharing nothing';
-                                    });
-                                  } else
-                                    _filesToBeTransferred
-                                        .forEach((String file, int fileSize) {
-                                      setState(() {
-                                        _transferProgressWidgets[_peerIP]
-                                            .peerStat = 'Fetching files';
-                                      });
-                                      _client
-                                          .fetchFile(
-                                              file, fileSize, _targetHomeDir)
-                                          .then(
-                                            (bool success) => setState(() {
-                                                  if (file ==
-                                                      _filesToBeTransferred.keys
-                                                          .toList()
-                                                          .last) {
-                                                    setState(() {
-                                                      _isTransferOn = false;
-                                                      _transferProgressWidgets[
-                                                                  _peerIP]
-                                                              .peerStat =
-                                                          'Transfer Complete';
-                                                    });
-                                                  }
-                                                }),
-                                          );
-                                    });
-                                },
-                                onError: (e) => setState(() {
-                                      _transferProgressWidgets[_peerIP]
-                                          .peerStat = 'Transfer Failed';
-                                    }),
-                              );
-                            },
-                  child: Text(widget.peerInfoHolder.type == 'send'
+              GestureDetector(
+                child: Chip(
+                  backgroundColor:
+                      _isTransferOn ? Colors.redAccent : Colors.tealAccent,
+                  labelPadding: EdgeInsets.only(
+                    left: 6,
+                    right: 12,
+                    top: 3,
+                    bottom: 3,
+                  ),
+                  padding: EdgeInsets.only(
+                    left: 4,
+                    right: 4,
+                  ),
+                  label: Text(widget.peerInfoHolder.type == 'send'
                       ? _isFileChosen
                           ? _isTransferOn ? 'Abort Transfer' : 'Init Transfer'
                           : 'Choose File(s)'
                       : _isTransferOn
                           ? 'Abort Transfer'
                           : 'Request File(s) from Peer'),
-                  color: _isTransferOn ? Colors.red : Colors.teal,
-                  elevation: 20,
-                  padding: EdgeInsets.all(6),
+                  avatar: Icon(
+                    widget.peerInfoHolder.type == 'send'
+                        ? _isFileChosen
+                            ? _isTransferOn ? Icons.cancel : Icons.arrow_right
+                            : Icons.attach_file
+                        : _isTransferOn ? Icons.cancel : Icons.file_download,
+                  ),
                 ),
+                onTap: widget.peerInfoHolder.type == 'send'
+                    // first checks whether it's send operation
+                    ? _isFileChosen
+                        // well if send, then check whether user has selected files
+                        ? _isTransferOn
+                            // now check if user has started transfer
+                            ? () {
+                                if (!_server.isStopped) {
+                                  _server.stop();
+                                  setState(() {
+                                    _isTransferOn = false;
+                                    _isFileChosen = false;
+                                  });
+                                }
+                              }
+                            // or not
+                            : () {
+                                if (_filesToBeTransferred.isNotEmpty) {
+                                  if (_server.isStopped) {
+                                    setState(() => _isTransferOn = true);
+                                    _server.init();
+                                  }
+                                }
+                              }
+                        // or not, select files
+                        : () {
+                            initFileChooser().then((filePaths) {
+                              _filesToBeTransferred = Map.fromEntries(filePaths
+                                  .map((elem) {
+                                    if (File(elem).existsSync()) return elem;
+                                  })
+                                  .toList()
+                                  .map((e) =>
+                                      MapEntry(e, File(e).lengthSync())));
+                              if (_filesToBeTransferred.isNotEmpty) {
+                                setState(() => _isFileChosen = true);
+                                _server.filesToBeShared =
+                                    Map.from(_filesToBeTransferred);
+                              } else
+                                showToast('Select onDevice Files', 'short');
+                            });
+                          }
+                    // or receive operation
+                    : _isTransferOn
+                        // check if user has started transfer
+                        ? () {
+                            _client.disconnect();
+                            setState(() => _isTransferOn = false);
+                          }
+                        // or not
+                        : () {
+                            String _peerIP;
+                            //int _peerPort;
+                            _filteredPeers.forEach((key, val) {
+                              _peerIP = key;
+                              _client = Client(key, val, this);
+                              //_peerPort = val;
+                            });
+                            setState(() {
+                              _isTransferOn = true;
+                              _peerStatus[_peerIP] = 'Connecting to Peer';
+                            });
+                            _client.fetchFileNames().then(
+                              (Map<String, int> fileNames) {
+                                _filesToBeTransferred = fileNames;
+                                if (_filesToBeTransferred.isEmpty) {
+                                  setState(() {
+                                    _isTransferOn = false;
+                                    _peerStatus[_peerIP] =
+                                        'Peer sharing nothing';
+                                  });
+                                } else
+                                  _filesToBeTransferred
+                                      .forEach((String file, int fileSize) {
+                                    setState(() {
+                                      _transferProgressWidgets[_peerIP]
+                                          .peerStat = 'Fetching files';
+                                    });
+                                    _client
+                                        .fetchFile(
+                                            file, fileSize, _targetHomeDir)
+                                        .then(
+                                          (bool success) => setState(() {
+                                                if (file ==
+                                                    _filesToBeTransferred.keys
+                                                        .toList()
+                                                        .last) {
+                                                  setState(() {
+                                                    _isTransferOn = false;
+                                                    _transferProgressWidgets[
+                                                                _peerIP]
+                                                            .peerStat =
+                                                        'Transfer Complete';
+                                                  });
+                                                }
+                                              }),
+                                        );
+                                  });
+                              },
+                              onError: (e) => setState(() {
+                                    _transferProgressWidgets[_peerIP].peerStat =
+                                        'Transfer Failed';
+                                  }),
+                            );
+                          },
               ),
             ],
           ),
