@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'transferZ',
       theme: ThemeData(
+        accentColor: Colors.cyanAccent,
         appBarTheme: AppBarTheme(
           color: Colors.black,
           elevation: 16,

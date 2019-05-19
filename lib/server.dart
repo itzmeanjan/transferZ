@@ -39,8 +39,8 @@ class Server {
                       _serverStatusCallBack
                           .updateTransferStatus(<String, Map<String, double>>{
                         socket.remoteAddress.address: {
-                          decodedData: 1
-                        } // 1 denotes transfer has started
+                          decodedData: 0
+                        } // 0 denotes transfer has started
                       });
                       _serverStatusCallBack.updatePeerStatus(
                           {socket.remoteAddress.address: 'Fetching Files'});
@@ -49,8 +49,8 @@ class Server {
                           _serverStatusCallBack.updateTransferStatus(<String,
                               Map<String, double>>{
                             socket.remoteAddress.address: {
-                              decodedData: 100
-                            } // 100 denotes, it's complete
+                              decodedData: 1
+                            } // 1 denotes, it's complete
                           });
                           socket.close();
                         },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as pathHandler;
 
 class TransferProgressWidget extends StatefulWidget {
   String peerName;
@@ -22,7 +23,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
             side: BorderSide(
               color: Colors.cyanAccent,
               style: BorderStyle.solid,
-              width: .25,
+              width: .5,
             ),
           ),
           elevation: 16,
@@ -56,8 +57,8 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                     ? Center(
                         child: CircularProgressIndicator(
                           valueColor: Tween<Color>(
-                            begin: Colors.greenAccent,
-                            end: Colors.green,
+                            begin: Colors.lightGreenAccent,
+                            end: Colors.lightGreen,
                           ).animate(
                             AnimationController(
                               vsync: this,
@@ -73,30 +74,74 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                               padding: EdgeInsets.only(
                                 left: 6,
                                 right: 6,
-                                top: 4,
-                                bottom: 4,
+                                top: 5,
+                                bottom: 5,
                               ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: <Widget>[
-                                  LinearProgressIndicator(
-                                    backgroundColor: Colors.lightBlueAccent,
-                                    value: widget.transferStat.values
-                                                .toList()[index] ==
-                                            -1
-                                        ? null
-                                        : widget.transferStat.values
+                              child: Card(
+                                color: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.cyanAccent,
+                                    style: BorderStyle.solid,
+                                    width: .15,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 10,
+                                    right: 10,
+                                    top: 5,
+                                    bottom: 5,
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      Divider(
+                                        height: 12,
+                                        color: Colors.black,
+                                      ),
+                                      Text(
+                                        pathHandler.basename(
+                                          widget.transferStat.keys
+                                              .toList()[index],
+                                        ),
+                                        overflow: TextOverflow.fade,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      Divider(
+                                        height: 12,
+                                        color: Colors.black,
+                                      ),
+                                      LinearProgressIndicator(
+                                        backgroundColor: Colors.white,
+                                        valueColor: Tween<Color>(
+                                          begin: Colors.cyanAccent,
+                                          end: Colors.cyan,
+                                        ).animate(
+                                          AnimationController(
+                                            vsync: this,
+                                          ),
+                                        ),
+                                        value: widget.transferStat.values
                                                     .toList()[index] ==
-                                                1
+                                                -1
                                             ? null
                                             : widget.transferStat.values
-                                                .toList()[index],
+                                                        .toList()[index] ==
+                                                    0
+                                                ? null
+                                                : widget.transferStat.values
+                                                    .toList()[index],
+                                      ),
+                                      Divider(
+                                        height: 12,
+                                        color: Colors.black,
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    '${widget.transferStat.keys.toList()[index]}',
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                         itemCount: widget.transferStat.keys.length,
@@ -104,7 +149,12 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
               ),
               Padding(
                 child: Chip(
-                  backgroundColor: Colors.limeAccent,
+                  elevation: 16,
+                  shadowColor: Colors.white54,
+                  backgroundColor: Colors.black,
+                  labelStyle: TextStyle(
+                    color: Colors.cyanAccent,
+                  ),
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
@@ -113,6 +163,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                   ),
                   avatar: Icon(
                     Icons.new_releases,
+                    color: Colors.cyanAccent,
                   ),
                   label: Text(
                     widget.peerStat,

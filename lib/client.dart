@@ -44,30 +44,33 @@ class Client {
         Duration(
           seconds: 1,
         ), (_timer) {
-      file.exists().then((bool existence) {
-        if (existence)
-          file.length().then((int length) => _clientStatusCallBack
-              .updateTransferStatusClientSide(
-                  {fileName: fileFetchedPercentage(fileSize, length)}));
-        else
-          _clientStatusCallBack.updateTransferStatusClientSide({fileName: 0});
-      });
+      if (_timer.isActive)
+        file.exists().then((bool existence) {
+          if (existence)
+            file.length().then((int length) {
+              if (fileFetchedRatio(fileSize, length).toInt() == 1)
+                _timer.cancel();
+              _clientStatusCallBack.updateTransferStatusClientSide(
+                  {fileName: fileFetchedRatio(fileSize, length)});
+            });
+          else
+            _clientStatusCallBack.updateTransferStatusClientSide({fileName: 0});
+        });
     });
     Socket.connect(_peerIP, _peerPort).then(
       (Socket socket) {
         _socket = socket;
         File(pathHandler.join(targetPath, pathHandler.basename(fileName)))
             .openWrite(mode: FileMode.write)
-            .addStream(socket)
+            .addStream(_socket)
             .then(
           (val) {
-            socket.close();
+            _socket.close();
             timer.cancel();
-            _clientStatusCallBack.updateTransferStatusClientSide({fileName: 100});
             completer.complete(true);
           },
           onError: (e) {
-            socket.close();
+            _socket.close();
             timer.cancel();
             completer.complete(false);
           },
@@ -79,10 +82,10 @@ class Client {
     return completer.future;
   }
 
-  double fileFetchedPercentage(int totalSize, int fetchedSize) =>
-      fetchedSize * 100 / totalSize;
+  double fileFetchedRatio(int totalSize, int fetchedSize) =>
+      fetchedSize / totalSize;
 
-  disconnect() => _socket?.close();
+  disconnect() => _socket?.destroy();
 }
 
 abstract class ClientStatusCallBack {

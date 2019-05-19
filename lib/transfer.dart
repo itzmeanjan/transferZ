@@ -76,8 +76,8 @@ class _TransferState extends State<Transfer>
 
   /// server side callback starts here
   @override
-  updatePeerStatus(Map<String, String> stat) => stat.forEach((key, val) =>
-      setState(() => _transferProgressWidgets[key].peerStat = val));
+  updatePeerStatus(Map<String, String> stat) =>
+      stat.forEach((key, val) => setState(() => _peerStatus[key] = val));
 
   @override
   updateTransferStatus(Map<String, Map<String, double>> stat) =>
@@ -86,7 +86,12 @@ class _TransferState extends State<Transfer>
           if ([100, -1].contains(valInner.ceil()))
             _serverSideDownloadCount += 1;
           setState(() {
-            _transferProgressWidgets[key].transferStat[keyInner] = valInner;
+            _transferStatus[key] = _transferProgressWidgets[key].transferStat
+              ..update(
+                keyInner,
+                (val) => valInner,
+                ifAbsent: () => valInner,
+              );
             if (_serverSideDownloadCount == _filesToBeTransferred.length) {
               _isFileChosen = false;
               _isTransferOn = false;
@@ -103,9 +108,18 @@ class _TransferState extends State<Transfer>
 
   /// client side callback
   @override
-  updateTransferStatusClientSide(Map<String, double> stat) => _filteredPeers
-      .forEach((key, val) => stat.forEach((keyInner, valInner) => setState(() =>
-          _transferProgressWidgets[key].transferStat[keyInner] = valInner)));
+  updateTransferStatusClientSide(Map<String, double> stat) =>
+      _filteredPeers.forEach((key, val) => stat.forEach((keyInner, valInner) {
+            print('$key - $keyInner - $valInner');
+            if (_isTransferOn)
+              setState(() => _transferStatus[key] =
+                  _transferProgressWidgets[key].transferStat
+                    ..update(
+                      keyInner,
+                      (val) => valInner,
+                      ifAbsent: () => valInner,
+                    ));
+          }));
 
   Future<String> getHomeDir() async =>
       // fetches path to homeDir, actually this is the directory where I'm going to store all files, fetched from any PEER
@@ -118,16 +132,15 @@ class _TransferState extends State<Transfer>
       await widget.methodChannel
           .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
+  /// use platform channel and display a toast message
   showToast(String message, String duration) async =>
-      // use platform channel and display a toast message
       await widget.methodChannel.invokeMethod('showToast',
           <String, String>{'message': message, 'duration': duration});
 
-  Future<List<String>> initFileChooser() async {
-    return await widget.methodChannel
-        .invokeMethod('initFileChooser')
-        .then((val) => List<String>.from(val));
-  }
+  /// launches file chooser intent using platform channel, and returns selected files
+  Future<List<String>> initFileChooser() async => await widget.methodChannel
+      .invokeMethod('initFileChooser')
+      .then((val) => List<String>.from(val));
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -243,7 +256,16 @@ class _TransferState extends State<Transfer>
                         // check if user has started transfer
                         ? () {
                             _client.disconnect();
-                            setState(() => _isTransferOn = false);
+                            setState(() {
+                              _isTransferOn = false;
+                              _peerStatus[_filteredPeers.keys.toList()[0]] =
+                                  'NA';
+                              _transferStatus[_filteredPeers.keys.toList()[0]] =
+                                  _transferProgressWidgets[
+                                          _filteredPeers.keys.toList()[0]]
+                                      .transferStat
+                                    ..clear();
+                            });
                           }
                         // or not
                         : () {
@@ -256,7 +278,12 @@ class _TransferState extends State<Transfer>
                             });
                             setState(() {
                               _isTransferOn = true;
-                              _peerStatus[_peerIP] = 'Connecting to Peer';
+                              _peerStatus[_peerIP] = 'Connecting to Peer ...';
+                              _transferStatus[_filteredPeers.keys.toList()[0]] =
+                                  _transferProgressWidgets[
+                                          _filteredPeers.keys.toList()[0]]
+                                      .transferStat
+                                    ..clear();
                             });
                             _client.fetchFileNames().then(
                               (Map<String, int> fileNames) {
@@ -264,16 +291,13 @@ class _TransferState extends State<Transfer>
                                 if (_filesToBeTransferred.isEmpty) {
                                   setState(() {
                                     _isTransferOn = false;
-                                    _peerStatus[_peerIP] =
-                                        'Peer sharing nothing';
+                                    _peerStatus[_peerIP] = 'Peer not Ready';
                                   });
                                 } else
                                   _filesToBeTransferred
                                       .forEach((String file, int fileSize) {
-                                    setState(() {
-                                      _transferProgressWidgets[_peerIP]
-                                          .peerStat = 'Fetching files';
-                                    });
+                                    setState(() => _peerStatus[_peerIP] =
+                                        'Fetching files');
                                     _client
                                         .fetchFile(
                                             file, fileSize, _targetHomeDir)
@@ -285,9 +309,7 @@ class _TransferState extends State<Transfer>
                                                         .last) {
                                                   setState(() {
                                                     _isTransferOn = false;
-                                                    _transferProgressWidgets[
-                                                                _peerIP]
-                                                            .peerStat =
+                                                    _peerStatus[_peerIP] =
                                                         'Transfer Complete';
                                                   });
                                                 }
@@ -295,10 +317,8 @@ class _TransferState extends State<Transfer>
                                         );
                                   });
                               },
-                              onError: (e) => setState(() {
-                                    _transferProgressWidgets[_peerIP].peerStat =
-                                        'Transfer Failed';
-                                  }),
+                              onError: (e) => setState(() =>
+                                  _peerStatus[_peerIP] = 'Transfer Failed'),
                             );
                           },
               ),
