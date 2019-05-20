@@ -3,9 +3,9 @@ import 'peer_finder.dart' show PeerInfoHolder;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'server.dart';
 import 'client.dart';
-import 'dart:io' show File, InternetAddress;
 import 'dart:io';
 import 'transfer_widget.dart';
+import 'package:path/path.dart' show basename, join;
 
 class Transfer extends StatefulWidget {
   final MethodChannel methodChannel;
@@ -28,6 +28,7 @@ class _TransferState extends State<Transfer>
   Client _client; // client Object
   Map<String, Map<String, double>>
       _transferStatus; // keeps track of status of transfer
+  Map<String, Map<String, int>> _transferStatusTimeSpent;
   Map<String, String> _peerStatus; // keeps track of PEER's status
   String
       _targetHomeDir; // gets directory path, where to store files, fetched from PEER
@@ -45,6 +46,7 @@ class _TransferState extends State<Transfer>
     _isTransferOn = false; // at first, transfer not started
     _peerStatus = {};
     _transferStatus = {};
+    _transferStatusTimeSpent = {};
     _transferProgressWidgets = {};
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
@@ -83,21 +85,37 @@ class _TransferState extends State<Transfer>
   updateTransferStatus(Map<String, Map<String, double>> stat) =>
       stat.forEach((key, val) {
         val.forEach((keyInner, valInner) {
-          if ([100, -1].contains(valInner.ceil()))
-            _serverSideDownloadCount += 1;
+          _serverSideDownloadCount +=
+              [100, -1].contains(valInner.toInt()) ? 1 : 0;
           setState(() {
-            _transferStatus[key] = _transferProgressWidgets[key].transferStat
-              ..update(
-                keyInner,
-                (val) => valInner,
-                ifAbsent: () => valInner,
-              );
-            if (_serverSideDownloadCount == _filesToBeTransferred.length) {
-              _isFileChosen = false;
-              _isTransferOn = false;
+            if (valInner == -1)
+              _transferStatus[key] = _transferProgressWidgets[key].transferStat
+                ..remove(keyInner);
+            else {
+              if (valInner == 100) vibrateDevice();
+              _transferStatus[key] = _transferProgressWidgets[key].transferStat
+                ..update(
+                  keyInner,
+                  (val) => valInner,
+                  ifAbsent: () => valInner,
+                );
             }
           });
         });
+        if (_serverSideDownloadCount ==
+            _filesToBeTransferred.length * _filteredPeers.keys.length) {
+          setState(() {
+            _transferStatus.forEach((key, val) {
+              _transferStatus[key] = _transferProgressWidgets[key].transferStat
+                ..clear();
+            });
+            _isFileChosen = false;
+            _isTransferOn = false;
+          });
+          _serverSideDownloadCount = 0;
+          _server.stop();
+          vibrateDevice(type: 'default');
+        }
       });
 
   @override
@@ -108,17 +126,39 @@ class _TransferState extends State<Transfer>
 
   /// client side callback
   @override
-  updateTransferStatusClientSide(Map<String, double> stat) =>
+  updateTransferStatusClientSide(Map<String, double> stat) {
+    int count = 0;
+    _filteredPeers.forEach((key, val) => stat.forEach((keyInner, valInner) {
+          if (_isTransferOn) {
+            count += valInner.toInt() == 1 ? 1 : 0;
+            setState(() => _transferStatus[key] =
+                _transferProgressWidgets[key].transferStat
+                  ..update(
+                    keyInner,
+                    (val) => valInner,
+                    ifAbsent: () => valInner,
+                  ));
+          }
+        }));
+    if (count == stat.length)
+      setState(() {
+        _isTransferOn = false;
+        _peerStatus[_filteredPeers.keys.toList()[0]] = 'Transfer Complete';
+      });
+  }
+
+  @override
+  updateTransferStatusTimeSpent(Map<String, int> stat) =>
       _filteredPeers.forEach((key, val) => stat.forEach((keyInner, valInner) {
-            print('$key - $keyInner - $valInner');
-            if (_isTransferOn)
-              setState(() => _transferStatus[key] =
-                  _transferProgressWidgets[key].transferStat
+            if (_isTransferOn) {
+              setState(() => _transferStatusTimeSpent[key] =
+                  _transferProgressWidgets[key].transferStatTimeSpent
                     ..update(
                       keyInner,
                       (val) => valInner,
                       ifAbsent: () => valInner,
                     ));
+            }
           }));
 
   Future<String> getHomeDir() async =>
@@ -172,6 +212,9 @@ class _TransferState extends State<Transfer>
                       transferStat: _transferStatus[
                               _filteredPeers.keys.toList()[indexP]] ??
                           {},
+                      transferStatTimeSpent: _transferStatusTimeSpent[
+                              _filteredPeers.keys.toList()[indexP]] ??
+                          {},
                     );
                     return _transferProgressWidgets[_filteredPeers.keys
                             .toList()[
@@ -204,7 +247,9 @@ class _TransferState extends State<Transfer>
                   avatar: Icon(
                     widget.peerInfoHolder.type == 'send'
                         ? _isFileChosen
-                            ? _isTransferOn ? Icons.cancel : Icons.arrow_right
+                            ? _isTransferOn
+                                ? Icons.cancel
+                                : Icons.play_circle_filled
                             : Icons.attach_file
                         : _isTransferOn ? Icons.cancel : Icons.file_download,
                   ),
@@ -219,6 +264,11 @@ class _TransferState extends State<Transfer>
                                 if (!_server.isStopped) {
                                   _server.stop();
                                   setState(() {
+                                    _transferStatus.forEach((key, val) {
+                                      _transferProgressWidgets[key].transferStat
+                                        ..clear();
+                                    });
+                                    _transferStatus = {};
                                     _isTransferOn = false;
                                     _isFileChosen = false;
                                   });
@@ -245,6 +295,7 @@ class _TransferState extends State<Transfer>
                                       MapEntry(e, File(e).lengthSync())));
                               if (_filesToBeTransferred.isNotEmpty) {
                                 setState(() => _isFileChosen = true);
+                                print(_filesToBeTransferred);
                                 _server.filesToBeShared =
                                     Map.from(_filesToBeTransferred);
                               } else
@@ -297,24 +348,59 @@ class _TransferState extends State<Transfer>
                                   _filesToBeTransferred
                                       .forEach((String file, int fileSize) {
                                     setState(() => _peerStatus[_peerIP] =
-                                        'Fetching files');
+                                        'Fetching File ...');
                                     _client
                                         .fetchFile(
                                             file, fileSize, _targetHomeDir)
                                         .then(
-                                          (bool success) => setState(() {
-                                                if (file ==
-                                                    _filesToBeTransferred.keys
-                                                        .toList()
-                                                        .last) {
-                                                  setState(() {
-                                                    _isTransferOn = false;
-                                                    _peerStatus[_peerIP] =
-                                                        'Transfer Complete';
-                                                  });
-                                                }
-                                              }),
-                                        );
+                                      (bool success) {
+                                        if (!success)
+                                          setState(() {
+                                            _peerStatus[_peerIP] =
+                                                'Transfer Failed';
+                                          });
+                                        else {
+                                          if (File(join(
+                                                _targetHomeDir,
+                                                basename(file),
+                                              )).lengthSync() ==
+                                              fileSize) {
+                                            setState(() {
+                                              _peerStatus[_peerIP] =
+                                                  'File Fetched';
+                                            });
+                                            if (file ==
+                                                _filesToBeTransferred.keys.last)
+                                              setState(() {
+                                                _peerStatus[_peerIP] =
+                                                    'Transfer Complete';
+                                                _transferStatus[_peerIP] =
+                                                    _transferProgressWidgets[
+                                                            _peerIP]
+                                                        .transferStat
+                                                      ..update(
+                                                        file,
+                                                        (val) => 1,
+                                                        ifAbsent: () => 1,
+                                                      );
+                                                _isTransferOn = false;
+                                              });
+                                          } else {
+                                            setState(() {
+                                              _peerStatus[_peerIP] =
+                                                  'Failed to Fetch';
+                                            });
+                                            if (file ==
+                                                _filesToBeTransferred.keys.last)
+                                              setState(() {
+                                                _peerStatus[_peerIP] =
+                                                    'Transfer Failed';
+                                                _isTransferOn = false;
+                                              });
+                                          }
+                                        }
+                                      },
+                                    );
                                   });
                               },
                               onError: (e) => setState(() =>

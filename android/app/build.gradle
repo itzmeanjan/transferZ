@@ -37,10 +37,10 @@ android {
         applicationId "io.github.itzmeanjan.transferz"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 3
-        versionName '1.0.2'
+        versionCode 4
+        versionName '1.1.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        multiDexEnabled = false
+        multiDexEnabled true
     }
     buildTypes {
         release {

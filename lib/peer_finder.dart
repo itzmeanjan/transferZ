@@ -131,17 +131,35 @@ class _PeerFinderState extends State<PeerFinder>
                                 : Colors.redAccent,
                             elevation: 12,
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
                                 Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 10,
-                                      right: 4,
+                                  child: Align(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 8,
+                                        right: 4,
+                                      ),
+                                      child: Chip(
+                                        shadowColor: Colors.red,
+                                        elevation: 0,
+                                        backgroundColor: _peerInfoHolder
+                                                        ._isPeerSelected[
+                                                    _peerInfoHolder._peers.keys
+                                                        .toList()[index]] ==
+                                                true
+                                            ? Colors.lightGreen
+                                            : Colors.redAccent,
+                                        label: Text(
+                                          '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                        avatar: Icon(
+                                          Icons.devices_other,
+                                        ),
+                                      ),
                                     ),
-                                    child: Text(
-                                      '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
-                                      overflow: TextOverflow.fade,
-                                    ),
+                                    alignment: Alignment.centerLeft,
                                   ),
                                   flex: 1,
                                 ),

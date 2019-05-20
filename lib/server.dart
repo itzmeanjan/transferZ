@@ -18,10 +18,11 @@ class Server {
         (ServerSocket server) {
           _server = server;
           isStopped = false;
-          _serverStatusCallBack.generalUpdate('Server Listening');
+          _serverStatusCallBack.generalUpdate('Ready to Transfer');
           server.listen(
             (Socket socket) {
-              if (isAccessGranted(socket.remoteAddress.address)) {
+              String remote = socket.remoteAddress.address;
+              if (isAccessGranted(remote)) {
                 _serverStatusCallBack.updatePeerStatus({
                   socket.remoteAddress.address: 'Connected'
                 }); // updates status of PEER, now PEER is connected
@@ -30,54 +31,55 @@ class Server {
                     var decodedData = utf8.decode(data);
                     if (decodedData == '/file') {
                       socket.write(json.encode(filesToBeShared));
-                      _serverStatusCallBack.updatePeerStatus(
-                          {socket.remoteAddress.address: 'Fetched File Names'});
+                      _serverStatusCallBack
+                          .updatePeerStatus({remote: 'Fetched File List'});
                       socket.close();
                     } else if (filesToBeShared.keys
                         .toList()
                         .contains(decodedData)) {
                       _serverStatusCallBack
                           .updateTransferStatus(<String, Map<String, double>>{
-                        socket.remoteAddress.address: {
+                        remote: {
                           decodedData: 0
                         } // 0 denotes transfer has started
                       });
-                      _serverStatusCallBack.updatePeerStatus(
-                          {socket.remoteAddress.address: 'Fetching Files'});
+                      _serverStatusCallBack
+                          .updatePeerStatus({remote: 'Fetching File ...'});
                       socket.addStream(File(decodedData).openRead()).then(
-                        (val) {
-                          _serverStatusCallBack.updateTransferStatus(<String,
-                              Map<String, double>>{
-                            socket.remoteAddress.address: {
-                              decodedData: 1
-                            } // 1 denotes, it's complete
-                          });
-                          socket.close();
-                        },
-                        onError: (e) =>
-                            _serverStatusCallBack.updateTransferStatus({
-                              socket.remoteAddress.address: {decodedData: -1}
-                            }), // -1 denotes, file transfer has failed
-                      );
+                          (val) {
+                        _serverStatusCallBack
+                            .updatePeerStatus({remote: 'Fetched File'});
+                        _serverStatusCallBack
+                            .updateTransferStatus(<String, Map<String, double>>{
+                          remote: {decodedData: 100} // 100 denotes, it's complete
+                        });
+                        socket.close();
+                      }, onError: (e) {
+                        _serverStatusCallBack
+                            .updatePeerStatus({remote: 'Failed to Fetch'});
+                        _serverStatusCallBack.updateTransferStatus({
+                          remote: {decodedData: -1}
+                        }); // -1 denotes, file transfer has failed
+                      });
                     } else {
                       socket.write('Bad Request');
-                      _serverStatusCallBack.updatePeerStatus(
-                          {socket.remoteAddress.address: 'Bad Request'});
-                      socket.close();
+                      _serverStatusCallBack
+                          .updatePeerStatus({remote: 'Bad Request'});
+                      socket.destroy();
                     }
                   },
                   onError: (e) {
-                    _serverStatusCallBack.updatePeerStatus(
-                        {socket.remoteAddress.address: 'Disconnected'});
-                    socket.close();
+                    _serverStatusCallBack
+                        .updatePeerStatus({remote: 'Disconnected'});
+                    socket.destroy();
                   },
                   cancelOnError: true,
                 );
               } else {
                 socket.write('Access not Granted');
-                _serverStatusCallBack.generalUpdate(
-                    'Denied Unauthorized Access from ${socket.remoteAddress.address}');
-                socket.close();
+                _serverStatusCallBack
+                    .generalUpdate('Denied Unauthorized Access from $remote');
+                socket.destroy();
               }
             },
             onError: (e) {
@@ -93,7 +95,7 @@ class Server {
         },
         onError: (e) {
           isStopped = true;
-          _serverStatusCallBack.generalUpdate('Failed to Start Server');
+          _serverStatusCallBack.generalUpdate('Failed to Init Transfer');
         },
       );
 

@@ -52,6 +52,8 @@ class Client {
                 _timer.cancel();
               _clientStatusCallBack.updateTransferStatusClientSide(
                   {fileName: fileFetchedRatio(fileSize, length)});
+              _clientStatusCallBack
+                  .updateTransferStatusTimeSpent({fileName: _timer.tick});
             });
           else
             _clientStatusCallBack.updateTransferStatusClientSide({fileName: 0});
@@ -90,4 +92,5 @@ class Client {
 
 abstract class ClientStatusCallBack {
   updateTransferStatusClientSide(Map<String, double> stat);
+  updateTransferStatusTimeSpent(Map<String, int> stat);
 }
