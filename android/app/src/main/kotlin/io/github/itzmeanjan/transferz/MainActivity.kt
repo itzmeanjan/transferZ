@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.*
 import android.provider.MediaStore
 import android.view.Gravity
@@ -20,14 +21,16 @@ import java.io.File
 
 class MainActivity : FlutterActivity() {
     private val methodChannelName = "io.github.itzmeanjan.transferz"
-    private var methodChannel: MethodChannel? = null
-    private var permissionResultHandler: PermissionResultHandler? = null
-    private var fileChooserCallBack: FileChooserCallBack? = null
+    private val multiCastLockTag = "io.github.itzmeanjan.transferz"
+    private lateinit var wifiMultiCastLock: WifiManager.MulticastLock
+    private lateinit var methodChannel: MethodChannel
+    private lateinit var permissionResultHandler: PermissionResultHandler
+    private lateinit var fileChooserCallBack: FileChooserCallBack
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         GeneratedPluginRegistrant.registerWith(this)
         methodChannel = MethodChannel(flutterView, methodChannelName)
-        methodChannel?.setMethodCallHandler { methodCall, result ->
+        methodChannel.setMethodCallHandler { methodCall, result ->
             when (methodCall.method) {
                 "isPermissionAvailable" -> {
                     result.success(isPermissionAvailable())
@@ -68,6 +71,15 @@ class MainActivity : FlutterActivity() {
                 "isConnected" -> {
                     result.success(isConnected())
                 }
+                "acquireWifiMultiCastLock" -> {
+                    (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).createMulticastLock(multiCastLockTag).also {
+                        wifiMultiCastLock = it
+                        it.acquire()
+                    }
+                }
+                "releaseWifiMultiCastLock" -> {
+                    if(wifiMultiCastLock.isHeld) wifiMultiCastLock.release()
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -81,11 +93,11 @@ class MainActivity : FlutterActivity() {
             999 -> {
                 if (permissions.isNotEmpty() && grantResults.isNotEmpty()) {
                     if (permissions[0] == android.Manifest.permission.WRITE_EXTERNAL_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                        permissionResultHandler?.granted()
+                        permissionResultHandler.granted()
                     else
-                        permissionResultHandler?.denied()
+                        permissionResultHandler.denied()
                 } else
-                    permissionResultHandler?.denied()
+                    permissionResultHandler.denied()
             }
             else -> {
                 // doing nothing useful
@@ -141,9 +153,9 @@ class MainActivity : FlutterActivity() {
                         }
                     } else
                         filePaths.add(uriToFilePath(data?.data!!))
-                    fileChooserCallBack?.send(filePaths)
+                    fileChooserCallBack.send(filePaths)
                 } else
-                    fileChooserCallBack?.send(listOf())
+                    fileChooserCallBack.send(listOf())
             }
             else -> {
                 // doing nothing useful

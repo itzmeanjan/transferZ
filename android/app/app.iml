@@ -17,7 +17,7 @@
         <option name="ALLOW_USER_CONFIGURATION" value="false" />
         <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
         <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
-        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res" />
+        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res;file://$MODULE_DIR$/../../build/app/generated/res/resValues/debug" />
         <option name="TEST_RES_FOLDERS_RELATIVE_PATH" value="" />
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
@@ -127,7 +127,6 @@
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/javac" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/legacy_multidex_aapt_derived_proguard_rules" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/legacy_multidex_main_dex_list" />
-      <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/lint_jar" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_assets" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_jni_libs" />
       <excludeFolder url="file://$MODULE_DIR$/../../build/app/intermediates/merged_manifests" />

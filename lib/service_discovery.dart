@@ -1,12 +1,16 @@
 import 'dart:io';
+import 'dart:convert' show utf8;
 
 class DiscoverService {
   // this service joins a MultiCast Group and writes back to certain Peer on reception of message
   String _targetIP;
   int _targetPort;
+  String
+      _multicastMessage; // this one tries to put a very light bound on which devices are getting considered as peers
   FoundServiceCallBack _foundServiceCallBack;
   RawDatagramSocket _rawDatagramSocket;
-  DiscoverService(this._targetIP, this._targetPort, this._foundServiceCallBack);
+  DiscoverService(this._targetIP, this._targetPort, this._multicastMessage,
+      this._foundServiceCallBack);
   discoverAndReport() => RawDatagramSocket.bind(
         InternetAddress.anyIPv6,
         _targetPort,
@@ -22,7 +26,8 @@ class DiscoverService {
         _rawDatagramSocket.listen((RawSocketEvent event) {
           if (event == RawSocketEvent.read) {
             Datagram datagram = _rawDatagramSocket.receive();
-            if (datagram != null) {
+            if (datagram != null &&
+                utf8.decode(datagram.data) == _multicastMessage) {
               _rawDatagramSocket.send(
                 datagram.data,
                 datagram.address,

@@ -23,31 +23,37 @@ class _PeerFinderState extends State<PeerFinder>
   DiscoverService _discoverService;
   int _targetPort;
   String _targetIP;
+  String _multicastMessage;
 
   @override
   void initState() {
     super.initState();
     _targetIP = '224.0.0.1'; // peers should be joining this multicast group
     _targetPort = 8000;
+    _multicastMessage = 'io.github.itzmeanjan.transferZ';
     _peerInfoHolder = PeerInfoHolder(widget.type);
     if (widget.type == 'send')
       _advertiseService = AdvertiseService(
         _targetIP,
         _targetPort,
-        'io.github.itzmeanjan.transferZ',
+        _multicastMessage,
         this,
       )..advertise();
-    else
+    else {
+      acquireWifiMultiCastLock();
       _discoverService = DiscoverService(
         _targetIP,
         _targetPort,
+        _multicastMessage,
         this,
       )..discoverAndReport();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
+    if (widget.type == 'receive') releaseWifiMultiCastLock();
     _advertiseService?.stopService();
     _discoverService?.stopService();
   }
@@ -73,6 +79,15 @@ class _PeerFinderState extends State<PeerFinder>
     });
     vibrateDevice();
   }
+
+  /// before starting nearby device discovery service, make sure you acquire this lock
+  /// otherwise by default android wifi stack will simply drop all packets not addressed to device
+  acquireWifiMultiCastLock() =>
+      widget.methodChannel.invokeMethod('acquireWifiMultiCastLock');
+
+  /// after work is done, make sure you release this lock
+  releaseWifiMultiCastLock() =>
+      widget.methodChannel.invokeMethod('releaseWifiMultiCastLock');
 
   showToast(String message, String duration) async =>
       await widget.methodChannel.invokeMethod('showToast',
