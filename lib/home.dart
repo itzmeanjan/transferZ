@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:io';
+import 'dart:math' show min;
 import 'peer_finder.dart' show PeerFinder;
 
 class MyHome extends StatefulWidget {
@@ -112,8 +113,14 @@ class _MyHomeState extends State<MyHome> {
                 children: <Widget>[
                   Padding(
                     child: Icon(
-                      IconData(0x1f644),
-                      semanticLabel: 'Confused',
+                      Icons.airplanemode_active,
+                      color: Colors.red,
+                      size: min(
+                            MediaQuery.of(context).size.height,
+                            MediaQuery.of(context).size.width,
+                          ) *
+                          .5,
+                      semanticLabel: 'Blocked',
                     ),
                     padding: EdgeInsets.all(
                       12,

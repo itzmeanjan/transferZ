@@ -17,33 +17,45 @@ class PeerFinder extends StatefulWidget {
 
 class _PeerFinderState extends State<PeerFinder>
     with TickerProviderStateMixin
-    implements FoundClientCallBack, FoundServiceCallBack {
+    implements FoundPeerCallBack, FoundServiceCallBack {
   PeerInfoHolder _peerInfoHolder;
   AdvertiseService _advertiseService;
   DiscoverService _discoverService;
+  int _targetPort;
+  String _targetIP;
 
   @override
   void initState() {
     super.initState();
+    _targetIP = '224.0.0.1'; // peers should be joining this multicast group
+    _targetPort = 8000;
     _peerInfoHolder = PeerInfoHolder(widget.type);
-    if (widget.type == 'send') {
-      _advertiseService = AdvertiseService(8000, this);
-      _advertiseService.advertise();
-    } else {
+    if (widget.type == 'send')
+      _advertiseService = AdvertiseService(
+        _targetIP,
+        _targetPort,
+        'io.github.itzmeanjan.transferZ',
+        this,
+      )..advertise();
+    else
       _discoverService = DiscoverService(
-          0, 'io.github.itzmeanjan.transferz', '255.255.255.255', 8000, this);
-      _discoverService.discoverAndReport();
-    }
+        _targetIP,
+        _targetPort,
+        this,
+      )..discoverAndReport();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _advertiseService?.stop();
+    _advertiseService?.stopService();
+    _discoverService?.stopService();
   }
 
   @override
-  foundClient(String host, int port) {
+  foundPeer(String host, int port) {
+    if (_peerInfoHolder._peers.containsKey(host) &&
+        _peerInfoHolder._peers[host] == port) return;
     setState(() {
       _peerInfoHolder._peers[host] = port;
       _peerInfoHolder._isPeerSelected[host] = false;
@@ -53,6 +65,8 @@ class _PeerFinderState extends State<PeerFinder>
 
   @override
   foundService(String host, int port) {
+    if (_peerInfoHolder._peers.containsKey(host) &&
+        _peerInfoHolder._peers[host] == port) return;
     setState(() {
       _peerInfoHolder._peers[host] = port;
       _peerInfoHolder._isPeerSelected[host] = false;
@@ -60,15 +74,12 @@ class _PeerFinderState extends State<PeerFinder>
     vibrateDevice();
   }
 
-  showToast(String message, String duration) async {
-    await widget.methodChannel.invokeMethod('showToast',
-        <String, String>{'message': message, 'duration': duration});
-  }
+  showToast(String message, String duration) async =>
+      await widget.methodChannel.invokeMethod('showToast',
+          <String, String>{'message': message, 'duration': duration});
 
-  vibrateDevice({String type: 'default'}) async {
-    await widget.methodChannel
-        .invokeMethod('vibrateDevice', <String, String>{'type': type});
-  }
+  vibrateDevice({String type: 'default'}) async => await widget.methodChannel
+      .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
   bool checkIfAtLeastOneIsSelected() {
     int count = 0;
@@ -79,216 +90,204 @@ class _PeerFinderState extends State<PeerFinder>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Image.asset(
-          'logo/logotype-horizontal.png',
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Image.asset(
+            'logo/logotype-horizontal.png',
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: Container(
-        padding: EdgeInsets.only(
-          top: 12,
-          bottom: 12,
-        ),
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: _peerInfoHolder._peers.length == 0
-            ? Center(
-                child: CircularProgressIndicator(
-                  valueColor: Tween<Color>(
-                    begin: Colors.tealAccent,
-                    end: Colors.teal,
-                  ).animate(
-                    AnimationController(vsync: this),
+        body: Container(
+          padding: EdgeInsets.only(
+            top: 12,
+            bottom: 12,
+          ),
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: _peerInfoHolder._peers.length == 0
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: Tween<Color>(
+                      begin: Colors.tealAccent,
+                      end: Colors.teal,
+                    ).animate(
+                      AnimationController(vsync: this),
+                    ),
                   ),
-                ),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Expanded(
-                    child: ListView.builder(
-                      padding: EdgeInsets.only(left: 8, right: 8),
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: 12, bottom: 12),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(36),
-                              side: BorderSide(
-                                color: Colors.white30,
-                                style: BorderStyle.solid,
-                                width: .5,
-                              ),
-                            ),
-                            color: _peerInfoHolder._isPeerSelected[
-                                        _peerInfoHolder._peers.keys
-                                            .toList()[index]] ==
-                                    true
-                                ? Colors.lightGreen
-                                : Colors.redAccent,
-                            elevation: 12,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Align(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 8,
-                                        right: 4,
-                                      ),
-                                      child: Chip(
-                                        shadowColor: Colors.red,
-                                        elevation: 0,
-                                        backgroundColor: _peerInfoHolder
-                                                        ._isPeerSelected[
-                                                    _peerInfoHolder._peers.keys
-                                                        .toList()[index]] ==
-                                                true
-                                            ? Colors.lightGreen
-                                            : Colors.redAccent,
-                                        label: Text(
-                                          '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
-                                          overflow: TextOverflow.fade,
-                                        ),
-                                        avatar: Icon(
-                                          Icons.devices_other,
-                                        ),
-                                      ),
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                  ),
-                                  flex: 1,
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(left: 8, right: 8),
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: EdgeInsets.only(top: 12, bottom: 12),
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(36),
+                                side: BorderSide(
+                                  color: Colors.white30,
+                                  style: BorderStyle.solid,
+                                  width: .5,
                                 ),
-                                IconButton(
-                                  tooltip: 'Connect to Peer',
-                                  disabledColor: Colors.grey,
-                                  color: Colors.green,
-                                  icon: Icon(
-                                    Icons.check_circle,
+                              ),
+                              color: _peerInfoHolder._isPeerSelected[
+                                          _peerInfoHolder._peers.keys
+                                              .toList()[index]] ==
+                                      true
+                                  ? Colors.lightGreen
+                                  : Colors.redAccent,
+                              elevation: 12,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Align(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 8,
+                                          right: 4,
+                                        ),
+                                        child: Chip(
+                                          shadowColor: Colors.red,
+                                          elevation: 0,
+                                          backgroundColor: _peerInfoHolder
+                                                          ._isPeerSelected[
+                                                      _peerInfoHolder
+                                                          ._peers.keys
+                                                          .toList()[index]] ==
+                                                  true
+                                              ? Colors.lightGreen
+                                              : Colors.redAccent,
+                                          label: Text(
+                                            '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                          avatar: Icon(
+                                            Icons.devices_other,
+                                          ),
+                                        ),
+                                      ),
+                                      alignment: Alignment.centerLeft,
+                                    ),
+                                    flex: 1,
                                   ),
-                                  onPressed: _peerInfoHolder._isPeerSelected[
-                                              _peerInfoHolder._peers.keys
-                                                  .toList()[index]] ==
-                                          false
-                                      ? () {
-                                          if (widget.type == 'send') {
+                                  IconButton(
+                                    tooltip: 'Connect to Peer',
+                                    disabledColor: Colors.grey,
+                                    color: Colors.green,
+                                    icon: Icon(
+                                      Icons.check_circle,
+                                    ),
+                                    onPressed: _peerInfoHolder._isPeerSelected[
+                                                _peerInfoHolder._peers.keys
+                                                    .toList()[index]] ==
+                                            false
+                                        ? () {
+                                            if (widget.type == 'send')
+                                              setState(
+                                                () => _peerInfoHolder
+                                                            ._isPeerSelected[
+                                                        _peerInfoHolder
+                                                            ._peers.keys
+                                                            .toList()[index]] =
+                                                    true,
+                                              );
+                                            else
+                                              setState(
+                                                () => _peerInfoHolder
+                                                    ._isPeerSelected
+                                                    .forEach((key, val) =>
+                                                        _peerInfoHolder
+                                                                ._isPeerSelected[
+                                                            key] = _peerInfoHolder
+                                                                        ._peers.keys
+                                                                        .toList()[
+                                                                    index] ==
+                                                                key
+                                                            ? true
+                                                            : false),
+                                              );
+                                            showToast(
+                                              "Selected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                              "short",
+                                            );
+                                          }
+                                        : null,
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Don\'t Connect to Peer',
+                                    disabledColor: Colors.grey,
+                                    color: Colors.red,
+                                    icon: Icon(
+                                      Icons.cancel,
+                                    ),
+                                    onPressed: _peerInfoHolder._isPeerSelected[
+                                                _peerInfoHolder._peers.keys
+                                                    .toList()[index]] ==
+                                            true
+                                        ? () {
                                             setState(() {
                                               _peerInfoHolder._isPeerSelected[
                                                   _peerInfoHolder._peers.keys
-                                                      .toList()[index]] = true;
+                                                      .toList()[index]] = false;
                                             });
-                                          } else {
-                                            setState(() {
-                                              _peerInfoHolder._isPeerSelected
-                                                  .forEach((key, val) {
-                                                _peerInfoHolder._isPeerSelected[
-                                                    key] = _peerInfoHolder
-                                                            ._peers.keys
-                                                            .toList()[index] ==
-                                                        key
-                                                    ? true
-                                                    : false;
-                                              });
-                                            });
+                                            showToast(
+                                                "Unselected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                                "short");
                                           }
-                                          showToast(
-                                              "Selected ${_peerInfoHolder._peers.keys.toList()[index]}",
-                                              "short");
-                                        }
-                                      : null,
-                                ),
-                                IconButton(
-                                  tooltip: 'Don\'t Connect to Peer',
-                                  disabledColor: Colors.grey,
-                                  color: Colors.red,
-                                  icon: Icon(
-                                    Icons.cancel,
+                                        : null,
                                   ),
-                                  onPressed: _peerInfoHolder._isPeerSelected[
-                                              _peerInfoHolder._peers.keys
-                                                  .toList()[index]] ==
-                                          true
-                                      ? () {
-                                          setState(() {
-                                            _peerInfoHolder._isPeerSelected[
-                                                _peerInfoHolder._peers.keys
-                                                    .toList()[index]] = false;
-                                          });
-                                          showToast(
-                                              "Unselected ${_peerInfoHolder._peers.keys.toList()[index]}",
-                                              "short");
-                                        }
-                                      : null,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      itemCount: _peerInfoHolder._peers.length,
-                    ),
-                  ),
-                  GestureDetector(
-                    child: Chip(
-                      backgroundColor: checkIfAtLeastOneIsSelected()
-                          ? Colors.tealAccent
-                          : Colors.grey,
-                      labelPadding: EdgeInsets.only(
-                        left: 6,
-                        right: 12,
-                        top: 3,
-                        bottom: 3,
-                      ),
-                      padding: EdgeInsets.only(
-                        left: 4,
-                        right: 4,
-                      ),
-                      label: Text(
-                        widget.type == 'send'
-                            ? 'Send to Peers'
-                            : 'Receive from Peer',
-                      ),
-                      avatar: Icon(
-                        widget.type == 'send'
-                            ? Icons.cloud_upload
-                            : Icons.cloud_download,
+                          );
+                        },
+                        itemCount: _peerInfoHolder._peers.length,
                       ),
                     ),
-                    onTap: checkIfAtLeastOneIsSelected()
-                        ? () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => Transfer(
-                                    methodChannel: widget.methodChannel,
-                                    peerInfoHolder: _peerInfoHolder)));
-                          }
-                        : null,
-                  ),
-                ],
-              ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: widget.type == 'send'
-            ? () {
-                setState(() {
-                  _peerInfoHolder._peers = {};
-                });
-                if (!_advertiseService.isStopped) _advertiseService.stop();
-                _advertiseService = AdvertiseService(8000, this);
-                _advertiseService.advertise();
-              }
-            : () {
-                setState(() => _peerInfoHolder._peers = {});
-                _discoverService.discoverAndReport();
-              },
-        child: Icon(Icons.refresh),
-        tooltip: 'Refresh Peer-List',
-      ),
-    );
-  }
+                    GestureDetector(
+                      child: Chip(
+                        backgroundColor: checkIfAtLeastOneIsSelected()
+                            ? Colors.tealAccent
+                            : Colors.grey,
+                        labelPadding: EdgeInsets.only(
+                          left: 6,
+                          right: 12,
+                          top: 3,
+                          bottom: 3,
+                        ),
+                        padding: EdgeInsets.only(
+                          left: 4,
+                          right: 4,
+                        ),
+                        label: Text(
+                          widget.type == 'send'
+                              ? 'Send to Peers'
+                              : 'Receive from Peer',
+                        ),
+                        avatar: Icon(
+                          widget.type == 'send'
+                              ? Icons.cloud_upload
+                              : Icons.cloud_download,
+                        ),
+                      ),
+                      onTap: checkIfAtLeastOneIsSelected()
+                          ? () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Transfer(
+                                      methodChannel: widget.methodChannel,
+                                      peerInfoHolder: _peerInfoHolder)));
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
+        ),
+      );
 }
 
 class PeerInfoHolder {
