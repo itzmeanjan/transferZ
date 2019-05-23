@@ -51,7 +51,9 @@ class Server {
                             .updatePeerStatus({remote: 'Fetched File'});
                         _serverStatusCallBack
                             .updateTransferStatus(<String, Map<String, double>>{
-                          remote: {decodedData: 100} // 100 denotes, it's complete
+                          remote: {
+                            decodedData: 100
+                          } // 100 denotes, it's complete
                         });
                         socket.close();
                       }, onError: (e) {

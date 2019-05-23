@@ -51,7 +51,7 @@ class _TransferState extends State<Transfer>
     _filteredPeers = filterEligiblePeers();
     if (widget.peerInfoHolder.type == 'send')
       // instance of Server created, which listens on 0.0.0.0:8000
-      _server = Server(InternetAddress.anyIPv4.address, 8000,
+      _server = Server(InternetAddress.anyIPv6.address, 8000,
           _filteredPeers.keys.toList(), _filesToBeTransferred, this);
     else
       getHomeDir().then((String val) {
