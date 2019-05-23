@@ -1,6 +1,7 @@
-import 'dart:io';
+import 'dart:io' show RawDatagramSocket, RawSocketEvent;
 import 'dart:convert' show utf8, json;
 
+/// this class helps us to listen for transfer progress, using UDP socket
 class TransferStatusListener {
   String _listenOnIP;
   int _listenOnPort; // try keeping it 0, to give OS an opportunity to choose one for us
@@ -34,9 +35,7 @@ class TransferStatusListener {
             },
           );
         },
-        onError: (e) => print(
-              'Server didn\'t start',
-            ),
+        onError: (e) => print(e),
       );
 
   /// checks whether incoming connection is from one of allowed peers or not
