@@ -4,13 +4,14 @@ import 'dart:convert' show utf8, json;
 class Server {
   String _host;
   int _port;
+  int progressListenerPort;
   List<String> _filteredPeers;
   Map<String, int> filesToBeShared;
   ServerStatusCallBack _serverStatusCallBack;
   bool isStopped = true;
 
-  Server(this._host, this._port, this._filteredPeers, this.filesToBeShared,
-      this._serverStatusCallBack);
+  Server(this._host, this._port, this.progressListenerPort, this._filteredPeers,
+      this.filesToBeShared, this._serverStatusCallBack);
 
   ServerSocket _server;
 
@@ -30,11 +31,16 @@ class Server {
                   (List<int> data) {
                     var decodedData = utf8.decode(data);
                     if (decodedData == '/file') {
-                      socket.write(json.encode(filesToBeShared));
+                      socket
+                        ..write(json.encode(filesToBeShared))
+                        ..close();
                       _serverStatusCallBack
                           .updatePeerStatus({remote: 'Fetched File List'});
-                      socket.close();
-                    } else if (filesToBeShared.keys
+                    } else if (decodedData == '/progressListener')
+                      socket
+                        ..write(utf8.encode(progressListenerPort.toString()))
+                        ..close(); // informs other end about on which port it will listen using UDP for transfer status update
+                    else if (filesToBeShared.keys
                         .toList()
                         .contains(decodedData)) {
                       _serverStatusCallBack
@@ -45,29 +51,30 @@ class Server {
                       });
                       _serverStatusCallBack
                           .updatePeerStatus({remote: 'Fetching File ...'});
-                      socket.addStream(File(decodedData).openRead()).then(
-                          (val) {
-                        _serverStatusCallBack
-                            .updatePeerStatus({remote: 'Fetched File'});
-                        _serverStatusCallBack
-                            .updateTransferStatus(<String, Map<String, double>>{
-                          remote: {
-                            decodedData: 100
-                          } // 100 denotes, it's complete
+                      socket
+                        ..addStream(File(decodedData).openRead()).then((val) {
+                          _serverStatusCallBack
+                              .updatePeerStatus({remote: 'Fetched File'});
+                          _serverStatusCallBack.updateTransferStatus(<String,
+                              Map<String, double>>{
+                            remote: {
+                              decodedData: 100
+                            } // 100 denotes, it's complete
+                          })
+                            ..close();
+                        }, onError: (e) {
+                          _serverStatusCallBack
+                              .updatePeerStatus({remote: 'Failed to Fetch'});
+                          _serverStatusCallBack.updateTransferStatus({
+                            remote: {decodedData: -1}
+                          }); // -1 denotes, file transfer has failed
                         });
-                        socket.close();
-                      }, onError: (e) {
-                        _serverStatusCallBack
-                            .updatePeerStatus({remote: 'Failed to Fetch'});
-                        _serverStatusCallBack.updateTransferStatus({
-                          remote: {decodedData: -1}
-                        }); // -1 denotes, file transfer has failed
-                      });
                     } else {
-                      socket.write('Bad Request');
+                      socket
+                        ..write('Bad Request')
+                        ..destroy();
                       _serverStatusCallBack
                           .updatePeerStatus({remote: 'Bad Request'});
-                      socket.destroy();
                     }
                   },
                   onError: (e) {
@@ -78,10 +85,11 @@ class Server {
                   cancelOnError: true,
                 );
               } else {
-                socket.write('Access not Granted');
+                socket
+                  ..write('Access not Granted')
+                  ..destroy();
                 _serverStatusCallBack
                     .generalUpdate('Denied Unauthorized Access from $remote');
-                socket.destroy();
               }
             },
             onError: (e) {

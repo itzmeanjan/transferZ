@@ -6,6 +6,8 @@ import 'client.dart';
 import 'dart:io';
 import 'transfer_widget.dart';
 import 'package:path/path.dart' show basename, join;
+import 'transfer_status_listener.dart';
+import 'transfer_status_reporter.dart';
 
 class Transfer extends StatefulWidget {
   final MethodChannel methodChannel;
@@ -20,12 +22,17 @@ class Transfer extends StatefulWidget {
 }
 
 class _TransferState extends State<Transfer>
-    implements ServerStatusCallBack, ClientStatusCallBack {
+    implements
+        ServerStatusCallBack,
+        ClientStatusCallBack,
+        TransferStatusCallback {
   Map<String, int>
       _filteredPeers; // PEERs which are going to take part in transfer
   Map<String, int> _filesToBeTransferred; // files to be transferred
   Server _server; // server object
+  TransferStatusListener _transferStatusListener;
   Client _client; // client Object
+  TransferStatusReporter _transferStatusReporter;
   Map<String, Map<String, double>>
       _transferStatus; // keeps track of status of transfer
   Map<String, Map<String, int>> _transferStatusTimeSpent;
@@ -35,6 +42,7 @@ class _TransferState extends State<Transfer>
   bool _isFileChosen; // helps to update UI
   bool _isTransferOn; // helps to update UI
   int _serverSideDownloadCount;
+  int _progressListenerPort;
   Map<String, TransferProgressWidget> _transferProgressWidgets;
 
   @override
@@ -42,6 +50,7 @@ class _TransferState extends State<Transfer>
     super.initState();
     _filesToBeTransferred = <String, int>{};
     _serverSideDownloadCount = 0;
+    _progressListenerPort = -1;
     _isFileChosen = false; // at first no file chosen
     _isTransferOn = false; // at first, transfer not started
     _peerStatus = {};
@@ -49,11 +58,24 @@ class _TransferState extends State<Transfer>
     _transferStatusTimeSpent = {};
     _transferProgressWidgets = {};
     _filteredPeers = filterEligiblePeers();
-    if (widget.peerInfoHolder.type == 'send')
+    if (widget.peerInfoHolder.type == 'send') {
       // instance of Server created, which listens on 0.0.0.0:8000
-      _server = Server(InternetAddress.anyIPv6.address, 8000,
-          _filteredPeers.keys.toList(), _filesToBeTransferred, this);
-    else
+      _server = Server(
+          InternetAddress.anyIPv6.address,
+          8000,
+          _progressListenerPort,
+          _filteredPeers.keys.toList(),
+          _filesToBeTransferred,
+          this);
+      _transferStatusListener = TransferStatusListener(
+          InternetAddress.anyIPv6.address,
+          0,
+          _filteredPeers.keys.toList(),
+          this);
+      _progressListenerPort = _transferStatusListener.getPortNumber();
+      _server.progressListenerPort =
+          _progressListenerPort; // updating transfer progress listener port number, after starting server
+    } else
       getHomeDir().then((String val) {
         _targetHomeDir =
             val; // home directory path, fetched using PlatformChannel
@@ -65,8 +87,10 @@ class _TransferState extends State<Transfer>
     super.dispose();
     // resource management is important, closes server object, client object etc.
     _server?.stop();
+    _transferStatusListener?.stop();
     // null-safe operator is used, to ensure that if server/ client not initialized, then it must not cause any exception
     _client?.disconnect();
+    _transferStatusReporter?.stop();
   }
 
   Map<String, int> filterEligiblePeers() =>
@@ -160,6 +184,9 @@ class _TransferState extends State<Transfer>
                     ));
             }
           }));
+
+  @override
+  send(String host, int port, Map<String, String> progress) {}
 
   Future<String> getHomeDir() async =>
       // fetches path to homeDir, actually this is the directory where I'm going to store all files, fetched from any PEER
@@ -262,6 +289,7 @@ class _TransferState extends State<Transfer>
                             // now check if user has started transfer
                             ? () {
                                 if (!_server.isStopped) {
+                                  _transferStatusListener.stop();
                                   _server.stop();
                                   setState(() {
                                     _transferStatus.forEach((key, val) {
@@ -279,6 +307,7 @@ class _TransferState extends State<Transfer>
                                 if (_filesToBeTransferred.isNotEmpty) {
                                   if (_server.isStopped) {
                                     setState(() => _isTransferOn = true);
+                                    _transferStatusListener.init();
                                     _server.init();
                                   }
                                 }
@@ -306,6 +335,7 @@ class _TransferState extends State<Transfer>
                     : _isTransferOn
                         // check if user has started transfer
                         ? () {
+                            _transferStatusReporter.stop();
                             _client.disconnect();
                             setState(() {
                               _isTransferOn = false;
@@ -325,7 +355,8 @@ class _TransferState extends State<Transfer>
                             _filteredPeers.forEach((key, val) {
                               _peerIP = key;
                               _client = Client(key, val, this);
-                              //_peerPort = val;
+                              _transferStatusReporter = TransferStatusReporter(
+                                  InternetAddress.anyIPv6.address, 0);
                             });
                             setState(() {
                               _isTransferOn = true;
@@ -344,7 +375,11 @@ class _TransferState extends State<Transfer>
                                     _isTransferOn = false;
                                     _peerStatus[_peerIP] = 'Peer not Ready';
                                   });
-                                } else
+                                } else {
+                                  _client.fetchProgressListenerPort().then(
+                                        (int port) =>
+                                            _progressListenerPort = port,
+                                      );
                                   _filesToBeTransferred
                                       .forEach((String file, int fileSize) {
                                     setState(() => _peerStatus[_peerIP] =
@@ -365,6 +400,7 @@ class _TransferState extends State<Transfer>
                                                 basename(file),
                                               )).lengthSync() ==
                                               fileSize) {
+                                            vibrateDevice(); // vibrates device to denote, a file has been successfully fetched
                                             setState(() {
                                               _peerStatus[_peerIP] =
                                                   'File Fetched';
@@ -402,6 +438,7 @@ class _TransferState extends State<Transfer>
                                       },
                                     );
                                   });
+                                }
                               },
                               onError: (e) => setState(() =>
                                   _peerStatus[_peerIP] = 'Transfer Failed'),

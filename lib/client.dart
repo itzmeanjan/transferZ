@@ -36,6 +36,31 @@ class Client {
     return completer.future;
   }
 
+  /// asks remote where does it want to listen for transfer progress update
+  /// if remote is not interested in listening in any update, it will simply respond with -1, which is not a valid port number
+  /// else it will return port number on which peer will listen using UDP
+  Future<int> fetchProgressListenerPort() {
+    var completer = Completer<int>();
+    Socket.connect(_peerIP, _peerPort).then(
+      (Socket socket) {
+        socket.listen(
+          (data) => socket.close().then(
+                (val) => completer.complete(int.parse(utf8.decode(data))),
+                onError: (e) => completer.complete(-1),
+              ),
+          cancelOnError: true,
+          onError: (e) => socket.close().then(
+                (val) => completer.complete(-1),
+                onError: (e) => completer.complete(-1),
+              ),
+        );
+        socket.write('/progressListener');
+      },
+      onError: (e) => completer.complete(-1),
+    );
+    return completer.future;
+  }
+
   Future<bool> fetchFile(String fileName, int fileSize, String targetPath) {
     var completer = Completer<bool>();
     var file =
