@@ -13,16 +13,16 @@ class TransferStatusListener {
     this._allowedPeers,
     this._transferStatusCallback,
   );
-  RawDatagramSocket _rawDatagramSocket;
+  RawDatagramSocket? _rawDatagramSocket;
   init() => RawDatagramSocket.bind(_listenOnIP, _listenOnPort).then(
         (RawDatagramSocket socket) {
           _rawDatagramSocket =
               socket; // storing this reference will help us to close socket
-          _rawDatagramSocket.readEventsEnabled = true;
-          _rawDatagramSocket.listen(
+          _rawDatagramSocket!.readEventsEnabled = true;
+          _rawDatagramSocket!.listen(
             (RawSocketEvent event) {
               if (event == RawSocketEvent.read) {
-                var dg = _rawDatagramSocket.receive();
+                var dg = _rawDatagramSocket!.receive();
                 if (dg != null &&
                     _isAllowedPeer(dg.address
                         .address)) // data received to be considered if and only if it's from one of the allowed peers
@@ -42,10 +42,10 @@ class TransferStatusListener {
   bool _isAllowedPeer(String host) => _allowedPeers.contains(host);
 
   /// returns port number on which server is running
-  int getPortNumber() => _rawDatagramSocket?.port;
+  int? getPortNumber() => _rawDatagramSocket?.port;
 
   /// closes socket, doesn't anymore accept connections
-  stop() => _rawDatagramSocket.close();
+  stop() => _rawDatagramSocket!.close();
 }
 
 abstract class TransferStatusCallback {

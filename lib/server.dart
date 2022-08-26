@@ -4,16 +4,16 @@ import 'dart:convert' show utf8, json;
 class Server {
   String _host;
   int _port;
-  int progressListenerPort;
+  int? progressListenerPort;
   List<String> _filteredPeers;
-  Map<String, int> filesToBeShared;
+  Map<String, int>? filesToBeShared;
   ServerStatusCallBack _serverStatusCallBack;
   bool isStopped = true;
 
   Server(this._host, this._port, this.progressListenerPort, this._filteredPeers,
       this.filesToBeShared, this._serverStatusCallBack);
 
-  ServerSocket _server;
+  late ServerSocket _server;
 
   init() => ServerSocket.bind(_host, _port).then(
         (ServerSocket server) {
@@ -40,7 +40,7 @@ class Server {
                       socket
                         ..write(utf8.encode(progressListenerPort.toString()))
                         ..close(); // informs other end about on which port it will listen using UDP for transfer status update
-                    else if (filesToBeShared.keys
+                    else if (filesToBeShared!.keys
                         .toList()
                         .contains(decodedData)) {
                       _serverStatusCallBack

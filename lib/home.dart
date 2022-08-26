@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
-import 'dart:io';
+
 import 'dart:math' show min;
 import 'peer_finder.dart' show PeerFinder;
 
@@ -11,16 +12,15 @@ class MyHome extends StatefulWidget {
 }
 
 class _MyHomeState extends State<MyHome> {
-  MethodChannel _methodChannel;
-  String _methodChannelName;
-  bool _isPermissionAvailable;
-  String _homeDir;
-  String _initText;
+  MethodChannel? _methodChannel;
+  late String _methodChannelName;
+  late bool _isPermissionAvailable;
+  late String _homeDir;
+  late String _initText;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIOverlays([]);
     _methodChannelName = 'io.github.itzmeanjan.transferz';
     _methodChannel = MethodChannel(_methodChannelName);
     _isPermissionAvailable = false;
@@ -49,34 +49,35 @@ class _MyHomeState extends State<MyHome> {
     });
   }
 
-  Future<bool> isPermissionAvailable() async => await _methodChannel
+  Future<bool> isPermissionAvailable() async => await _methodChannel!
       .invokeMethod('isPermissionAvailable')
       .then((val) => val);
 
-  Future<bool> requestPermission() async =>
-      await _methodChannel.invokeMethod('requestPermission').then((val) => val);
+  Future<bool> requestPermission() async => await _methodChannel!
+      .invokeMethod('requestPermission')
+      .then((val) => val);
 
-  Future<String> getHomeDir() async => await _methodChannel.invokeMethod(
+  Future<String> getHomeDir() async => await _methodChannel!.invokeMethod(
       'getHomeDir',
       <String, String>{'dirName': 'transferZ'}).then((val) => val);
 
-  Future<List<String>> initFileChooser() async => await _methodChannel
+  Future<List<String>> initFileChooser() async => await _methodChannel!
       .invokeMethod('initFileChooser')
       .then((val) => List<String>.from(val));
 
   Future<void> showToast(String message, String duration) async =>
       // simply show a toast message
-      await _methodChannel.invokeMethod('showToast',
+      await _methodChannel!.invokeMethod('showToast',
           <String, String>{'message': message, 'duration': duration});
 
   Future<bool> isConnected() async =>
       // checks whether we're connected to internet or not
-      await _methodChannel.invokeMethod('isConnected').then((val) => val);
+      await _methodChannel!.invokeMethod('isConnected').then((val) => val);
 
   vibrateDevice({String type: 'tick'}) async =>
       // uses platform channel to vibrate device using a certain type of VibrationEffect
       // in this case I'm using a single shot click vibrator
-      await _methodChannel
+      await _methodChannel!
           .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
   floatingActionButtonCallBack() {
@@ -92,9 +93,11 @@ class _MyHomeState extends State<MyHome> {
     });
   }
 
-  createDirectory(String dirName) {
-    Directory directory = Directory(dirName);
-    directory.exists().then((val) => !val ? directory.create() : null);
+  createDirectory(String dirName) async {
+    Directory? directory = Directory(dirName);
+    if (await directory.exists() != true) {
+      directory.create();
+    }
   }
 
   @override
@@ -163,17 +166,17 @@ class _MyHomeState extends State<MyHome> {
                         color: Colors.cyanAccent,
                       ),
                       onPressed: () => isConnected().then((val) {
-                            if (val)
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => PeerFinder(
-                                        type: 'send',
-                                        methodChannel: _methodChannel,
-                                      )));
-                            else {
-                              vibrateDevice();
-                              showToast('Get connected to WIFI', 'short');
-                            }
-                          }),
+                        if (val)
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => PeerFinder(
+                                    type: 'send',
+                                    methodChannel: _methodChannel,
+                                  )));
+                        else {
+                          vibrateDevice();
+                          showToast('Get connected to WIFI', 'short');
+                        }
+                      }),
                       tooltip: 'Send File',
                     ),
                     IconButton(
@@ -184,17 +187,17 @@ class _MyHomeState extends State<MyHome> {
                         color: Colors.tealAccent,
                       ),
                       onPressed: () => isConnected().then((val) {
-                            if (val)
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => PeerFinder(
-                                        type: 'receive',
-                                        methodChannel: _methodChannel,
-                                      )));
-                            else {
-                              vibrateDevice();
-                              showToast('Get connected to WIFI', 'short');
-                            }
-                          }),
+                        if (val)
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => PeerFinder(
+                                    type: 'receive',
+                                    methodChannel: _methodChannel,
+                                  )));
+                        else {
+                          vibrateDevice();
+                          showToast('Get connected to WIFI', 'short');
+                        }
+                      }),
                       tooltip: 'Receive File',
                     ),
                   ],

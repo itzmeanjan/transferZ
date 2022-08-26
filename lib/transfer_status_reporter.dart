@@ -9,7 +9,7 @@ class TransferStatusReporter {
     this._listenOnIP,
     this._listenOnPort,
   );
-  RawDatagramSocket _rawDatagramSocket;
+  late RawDatagramSocket _rawDatagramSocket;
 
   /// initializes UDP socket and uses same socket for sending update to PEER
   init() => RawDatagramSocket.bind(_listenOnIP, _listenOnPort).then(

@@ -6,9 +6,9 @@ import 'transfer.dart';
 
 class PeerFinder extends StatefulWidget {
   final String type;
-  final MethodChannel methodChannel;
+  final MethodChannel? methodChannel;
 
-  PeerFinder({Key key, @required this.type, @required this.methodChannel})
+  PeerFinder({Key? key, required this.type, required this.methodChannel})
       : super(key: key);
 
   @override
@@ -18,12 +18,12 @@ class PeerFinder extends StatefulWidget {
 class _PeerFinderState extends State<PeerFinder>
     with TickerProviderStateMixin
     implements FoundPeerCallBack, FoundServiceCallBack {
-  PeerInfoHolder _peerInfoHolder;
-  AdvertiseService _advertiseService;
-  DiscoverService _discoverService;
-  int _targetPort;
-  String _targetIP;
-  String _multicastMessage;
+  PeerInfoHolder? _peerInfoHolder;
+  AdvertiseService? _advertiseService;
+  DiscoverService? _discoverService;
+  int? _targetPort;
+  String? _targetIP;
+  String? _multicastMessage;
 
   @override
   void initState() {
@@ -60,22 +60,22 @@ class _PeerFinderState extends State<PeerFinder>
 
   @override
   foundPeer(String host, int port) {
-    if (_peerInfoHolder._peers.containsKey(host) &&
-        _peerInfoHolder._peers[host] == port) return;
+    if (_peerInfoHolder!._peers!.containsKey(host) &&
+        _peerInfoHolder!._peers![host] == port) return;
     setState(() {
-      _peerInfoHolder._peers[host] = port;
-      _peerInfoHolder._isPeerSelected[host] = false;
+      _peerInfoHolder!._peers![host] = port;
+      _peerInfoHolder!._isPeerSelected![host] = false;
     });
     vibrateDevice();
   }
 
   @override
   foundService(String host, int port) {
-    if (_peerInfoHolder._peers.containsKey(host) &&
-        _peerInfoHolder._peers[host] == port) return;
+    if (_peerInfoHolder!._peers!.containsKey(host) &&
+        _peerInfoHolder!._peers![host] == port) return;
     setState(() {
-      _peerInfoHolder._peers[host] = port;
-      _peerInfoHolder._isPeerSelected[host] = false;
+      _peerInfoHolder!._peers![host] = port;
+      _peerInfoHolder!._isPeerSelected![host] = false;
     });
     vibrateDevice();
   }
@@ -83,22 +83,22 @@ class _PeerFinderState extends State<PeerFinder>
   /// before starting nearby device discovery service, make sure you acquire this lock
   /// otherwise by default android wifi stack will simply drop all packets not addressed to device
   acquireWifiMultiCastLock() =>
-      widget.methodChannel.invokeMethod('acquireWifiMultiCastLock');
+      widget.methodChannel!.invokeMethod('acquireWifiMultiCastLock');
 
   /// after work is done, make sure you release this lock
   releaseWifiMultiCastLock() =>
-      widget.methodChannel.invokeMethod('releaseWifiMultiCastLock');
+      widget.methodChannel!.invokeMethod('releaseWifiMultiCastLock');
 
   showToast(String message, String duration) async =>
-      await widget.methodChannel.invokeMethod('showToast',
+      await widget.methodChannel!.invokeMethod('showToast',
           <String, String>{'message': message, 'duration': duration});
 
-  vibrateDevice({String type: 'default'}) async => await widget.methodChannel
+  vibrateDevice({String type: 'default'}) async => await widget.methodChannel!
       .invokeMethod('vibrateDevice', <String, String>{'type': type});
 
   bool checkIfAtLeastOneIsSelected() {
     int count = 0;
-    _peerInfoHolder._isPeerSelected.forEach((key, val) {
+    _peerInfoHolder!._isPeerSelected!.forEach((key, val) {
       count += val ? 1 : 0;
     });
     return count == 0 ? false : true;
@@ -119,7 +119,7 @@ class _PeerFinderState extends State<PeerFinder>
           ),
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          child: _peerInfoHolder._peers.length == 0
+          child: _peerInfoHolder!._peers!.length == 0
               ? Center(
                   child: CircularProgressIndicator(
                     valueColor: Tween<Color>(
@@ -148,8 +148,8 @@ class _PeerFinderState extends State<PeerFinder>
                                   width: .5,
                                 ),
                               ),
-                              color: _peerInfoHolder._isPeerSelected[
-                                          _peerInfoHolder._peers.keys
+                              color: _peerInfoHolder!._isPeerSelected![
+                                          _peerInfoHolder!._peers!.keys
                                               .toList()[index]] ==
                                       true
                                   ? Colors.lightGreen
@@ -169,16 +169,16 @@ class _PeerFinderState extends State<PeerFinder>
                                         child: Chip(
                                           shadowColor: Colors.red,
                                           elevation: 0,
-                                          backgroundColor: _peerInfoHolder
-                                                          ._isPeerSelected[
-                                                      _peerInfoHolder
-                                                          ._peers.keys
+                                          backgroundColor: _peerInfoHolder!
+                                                          ._isPeerSelected![
+                                                      _peerInfoHolder!
+                                                          ._peers!.keys
                                                           .toList()[index]] ==
                                                   true
                                               ? Colors.lightGreen
                                               : Colors.redAccent,
                                           label: Text(
-                                            '${_peerInfoHolder._peers.keys.toList()[index]}:${_peerInfoHolder._peers[_peerInfoHolder._peers.keys.toList()[index]]}',
+                                            '${_peerInfoHolder!._peers!.keys.toList()[index]}:${_peerInfoHolder!._peers![_peerInfoHolder!._peers!.keys.toList()[index]]}',
                                             overflow: TextOverflow.fade,
                                           ),
                                           avatar: Icon(
@@ -197,29 +197,29 @@ class _PeerFinderState extends State<PeerFinder>
                                     icon: Icon(
                                       Icons.check_circle,
                                     ),
-                                    onPressed: _peerInfoHolder._isPeerSelected[
-                                                _peerInfoHolder._peers.keys
+                                    onPressed: _peerInfoHolder!._isPeerSelected![
+                                                _peerInfoHolder!._peers!.keys
                                                     .toList()[index]] ==
                                             false
                                         ? () {
                                             if (widget.type == 'send')
                                               setState(
-                                                () => _peerInfoHolder
-                                                            ._isPeerSelected[
-                                                        _peerInfoHolder
-                                                            ._peers.keys
+                                                () => _peerInfoHolder!
+                                                            ._isPeerSelected![
+                                                        _peerInfoHolder!
+                                                            ._peers!.keys
                                                             .toList()[index]] =
                                                     true,
                                               );
                                             else
                                               setState(
-                                                () => _peerInfoHolder
-                                                    ._isPeerSelected
+                                                () => _peerInfoHolder!
+                                                    ._isPeerSelected!
                                                     .forEach((key, val) =>
-                                                        _peerInfoHolder
-                                                                ._isPeerSelected[
-                                                            key] = _peerInfoHolder
-                                                                        ._peers.keys
+                                                        _peerInfoHolder!
+                                                                ._isPeerSelected![
+                                                            key] = _peerInfoHolder!
+                                                                        ._peers!.keys
                                                                         .toList()[
                                                                     index] ==
                                                                 key
@@ -227,7 +227,7 @@ class _PeerFinderState extends State<PeerFinder>
                                                             : false),
                                               );
                                             showToast(
-                                              "Selected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                              "Selected ${_peerInfoHolder!._peers!.keys.toList()[index]}",
                                               "short",
                                             );
                                           }
@@ -240,18 +240,18 @@ class _PeerFinderState extends State<PeerFinder>
                                     icon: Icon(
                                       Icons.cancel,
                                     ),
-                                    onPressed: _peerInfoHolder._isPeerSelected[
-                                                _peerInfoHolder._peers.keys
+                                    onPressed: _peerInfoHolder!._isPeerSelected![
+                                                _peerInfoHolder!._peers!.keys
                                                     .toList()[index]] ==
                                             true
                                         ? () {
                                             setState(() {
-                                              _peerInfoHolder._isPeerSelected[
-                                                  _peerInfoHolder._peers.keys
+                                              _peerInfoHolder!._isPeerSelected![
+                                                  _peerInfoHolder!._peers!.keys
                                                       .toList()[index]] = false;
                                             });
                                             showToast(
-                                                "Unselected ${_peerInfoHolder._peers.keys.toList()[index]}",
+                                                "Unselected ${_peerInfoHolder!._peers!.keys.toList()[index]}",
                                                 "short");
                                           }
                                         : null,
@@ -261,7 +261,7 @@ class _PeerFinderState extends State<PeerFinder>
                             ),
                           );
                         },
-                        itemCount: _peerInfoHolder._peers.length,
+                        itemCount: _peerInfoHolder!._peers!.length,
                       ),
                     ),
                     GestureDetector(
@@ -313,9 +313,9 @@ class PeerInfoHolder {
     _isPeerSelected = {};
   }
 
-  Map<String, int> _peers;
-  Map<String, bool> _isPeerSelected;
+  Map<String, int>? _peers;
+  Map<String, bool>? _isPeerSelected;
 
-  Map<String, int> getPeers() => _peers;
-  Map<String, bool> getSelectedPeers() => _isPeerSelected;
+  Map<String, int>? getPeers() => _peers;
+  Map<String, bool>? getSelectedPeers() => _isPeerSelected;
 }

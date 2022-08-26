@@ -8,7 +8,7 @@ class Client {
   int _peerPort;
   ClientStatusCallBack _clientStatusCallBack;
 
-  Socket _socket;
+  Socket? _socket;
 
   Client(this._peerIP, this._peerPort, this._clientStatusCallBack);
 
@@ -89,15 +89,15 @@ class Client {
         _socket = socket;
         File(pathHandler.join(targetPath, pathHandler.basename(fileName)))
             .openWrite(mode: FileMode.write)
-            .addStream(_socket)
+            .addStream(_socket!)
             .then(
           (val) {
-            _socket.close();
+            _socket!.close();
             timer.cancel();
             completer.complete(true);
           },
           onError: (e) {
-            _socket.close();
+            _socket!.close();
             timer.cancel();
             completer.complete(false);
           },

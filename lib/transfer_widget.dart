@@ -4,15 +4,15 @@ import 'timestamp_handler.dart';
 import 'dart:math' show min;
 
 class TransferProgressWidget extends StatefulWidget {
-  String peerName;
-  String peerStat;
-  Map<String, double> transferStat;
-  Map<String, int> transferStatTimeSpent;
+  String? peerName;
+  String? peerStat;
+  Map<String, double>? transferStat;
+  Map<String, int>? transferStatTimeSpent;
   TransferProgressWidget(
-      {Key key,
-      @required this.peerName,
-      @required this.peerStat,
-      @required this.transferStat,
+      {Key? key,
+      required this.peerName,
+      required this.peerStat,
+      required this.transferStat,
       this.transferStatTimeSpent})
       : super(key: key);
   @override
@@ -51,7 +51,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                     bottom: 4,
                   ),
                   label: Text(
-                    widget.peerName,
+                    '${widget.peerName}',
                   ),
                 ),
                 padding:
@@ -60,7 +60,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
               SizedBox(
                 height: MediaQuery.of(context).size.height / 4.5,
                 width: MediaQuery.of(context).size.width * .9,
-                child: widget.transferStat.isEmpty
+                child: widget.transferStat!.isEmpty
                     ? Center(
                         child: Icon(
                           Icons.flight,
@@ -107,7 +107,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                         ),
                                         label: Text(
                                           pathHandler.basename(
-                                            widget.transferStat.keys
+                                            widget.transferStat!.keys
                                                 .toList()[index],
                                           ),
                                           overflow: TextOverflow.fade,
@@ -133,19 +133,19 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                             ),
                                           ),
                                         ),
-                                        value: widget.transferStat.values
+                                        value: widget.transferStat!.values
                                                     .toList()[index] ==
                                                 -1
                                             ? null
-                                            : widget.transferStat.values
+                                            : widget.transferStat!.values
                                                         .toList()[index] ==
                                                     0
                                                 ? null
-                                                : widget.transferStat.values
+                                                : widget.transferStat!.values
                                                             .toList()[index] ==
                                                         100
                                                     ? 1
-                                                    : widget.transferStat.values
+                                                    : widget.transferStat!.values
                                                         .toList()[index],
                                       ),
                                       Divider(
@@ -159,20 +159,20 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                         children: <Widget>[
                                           // displays time spent, starting from init of transfer
                                           Text(
-                                            widget.transferStat.values
+                                            widget.transferStat!.values
                                                         .toList()[index] ==
                                                     -1
                                                 ? '+ NA s'
-                                                : widget.transferStat.values
+                                                : widget.transferStat!.values
                                                             .toList()[index] ==
                                                         0
                                                     ? '+ NA s'
-                                                    : widget.transferStat.values
+                                                    : widget.transferStat!.values
                                                                     .toList()[
                                                                 index] ==
                                                             100
                                                         ? '+ NA s'
-                                                        : '+ ${TimeStampHandler.getStringFromSecond(widget.transferStatTimeSpent.values.toList()[index].toDouble())}',
+                                                        : '+ ${TimeStampHandler.getStringFromSecond(widget.transferStatTimeSpent!.values.toList()[index].toDouble())}',
                                             style: TextStyle(
                                               color: Colors.amberAccent,
                                             ),
@@ -180,20 +180,20 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                           ),
                                           // displays time remaining, before transfer completes
                                           Text(
-                                            widget.transferStat.values
+                                            widget.transferStat!.values
                                                         .toList()[index] ==
                                                     -1
                                                 ? '- NA s'
-                                                : widget.transferStat.values
+                                                : widget.transferStat!.values
                                                             .toList()[index] ==
                                                         0
                                                     ? '- NA s'
-                                                    : widget.transferStat.values
+                                                    : widget.transferStat!.values
                                                                     .toList()[
                                                                 index] ==
                                                             100
                                                         ? '- NA s'
-                                                        : '- ${TimeStampHandler.getStringFromSecond(((widget.transferStatTimeSpent.values.toList()[index] / widget.transferStat.values.toList()[index]) - widget.transferStatTimeSpent.values.toList()[index]))}',
+                                                        : '- ${TimeStampHandler.getStringFromSecond(((widget.transferStatTimeSpent!.values.toList()[index] / widget.transferStat!.values.toList()[index]) - widget.transferStatTimeSpent!.values.toList()[index]))}',
                                             style: TextStyle(
                                               color: Colors.amberAccent,
                                             ),
@@ -201,15 +201,15 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                           ),
                                           // displays amount of transfer in percentage
                                           Text(
-                                            widget.transferStat.values
+                                            widget.transferStat!.values
                                                         .toList()[index] ==
                                                     -1
                                                 ? 'NA %'
-                                                : widget.transferStat.values
+                                                : widget.transferStat!.values
                                                             .toList()[index] ==
                                                         0
                                                     ? 'NA %'
-                                                    : '${(widget.transferStat.values.toList()[index] * 100).toStringAsFixed(2)} %',
+                                                    : '${(widget.transferStat!.values.toList()[index] * 100).toStringAsFixed(2)} %',
                                             style: TextStyle(
                                               color: Colors.amberAccent,
                                             ),
@@ -226,7 +226,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                                 ),
                               ),
                             ),
-                        itemCount: widget.transferStat.keys.length,
+                        itemCount: widget.transferStat!.keys.length,
                       ),
               ),
               Padding(
@@ -248,7 +248,7 @@ class _TransferProgressWidget extends State<TransferProgressWidget>
                     color: Colors.cyanAccent,
                   ),
                   label: Text(
-                    widget.peerStat,
+                    '${widget.peerStat}',
                     overflow: TextOverflow.fade,
                   ),
                 ),

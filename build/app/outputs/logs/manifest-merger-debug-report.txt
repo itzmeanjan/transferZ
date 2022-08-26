@@ -1,0 +1,161 @@
+-- Merging decision tree log ---
+application
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:17:5-40:19
+MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:24:5-89
+MERGED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:24:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\user\.gradle\caches\transforms-2\files-2.1\b2cf61ec6a9d77ac626fc6fc193abd73\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\user\.gradle\caches\transforms-2\files-2.1\b2cf61ec6a9d77ac626fc6fc193abd73\AndroidManifest.xml:24:5-25:19
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:24:18-86
+	android:name
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+manifest
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3824f750a0097ee58d9bb9f77d57d23d\AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\22449490bf210ae0fe5da4cee00f0d45\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3efacab27cfd9a83153f842830a25bd0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6d0b8ed7b67b52e12f4c5a037d2cf32f\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\5f8c0ff895bc5216b138b906e2e733e9\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\dd015f3498dc8db594f113763eb629fa\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:17:1-26:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\d1f1694c757f9086a7b53c997776821f\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\7d6dd249f110c6c908f1479edb2b0c9d\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\0c354d3d3677f3ad12642c22acb60249\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\680500519a2a1e44e6cb41bb4bfc2a36\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\087da12f86ccac2f80a6675fb47c4e2d\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\user\.gradle\caches\transforms-2\files-2.1\b2cf61ec6a9d77ac626fc6fc193abd73\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\716221d3900dc3d114bcaed9a8476b5e\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\f259196f9c494214f55119a9f5df8480\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\82d51b8bab04da8e1361bb9fb3406389\AndroidManifest.xml:17:1-24:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml:1:1-11:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml:1:1-11:12
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml:1:1-11:12
+	package
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:2:5-45
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+	android:versionName
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+	android:versionCode
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:1-44:12
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+	xmlns:android
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.INTERNET
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:9:5-66
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:9:5-66
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:9:5-66
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:9:22-64
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:10:5-79
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:10:5-79
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:10:5-79
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:10:22-77
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:11:5-80
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:11:5-80
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:11:5-80
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:11:22-78
+uses-permission#android.permission.VIBRATE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:12:5-65
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:12:5-65
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:12:5-65
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:12:22-63
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:13:5-78
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:13:5-78
+MERGED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:13:5-78
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:13:22-76
+uses-feature#android.hardware.wifi
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:14:5-81
+	android:required
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:14:56-79
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:14:19-55
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:15:5-75
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:15:22-73
+uses-permission#android.permission.CHANGE_WIFI_MULTICAST_STATE
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:16:5-85
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:16:22-83
+meta-data#flutterEmbedding
+ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:41:5-43:25
+	android:value
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:43:5-22
+	android:name
+		ADDED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml:42:5-36
+uses-sdk
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3824f750a0097ee58d9bb9f77d57d23d\AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3824f750a0097ee58d9bb9f77d57d23d\AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\22449490bf210ae0fe5da4cee00f0d45\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\22449490bf210ae0fe5da4cee00f0d45\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3efacab27cfd9a83153f842830a25bd0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\3efacab27cfd9a83153f842830a25bd0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6d0b8ed7b67b52e12f4c5a037d2cf32f\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6d0b8ed7b67b52e12f4c5a037d2cf32f\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\5f8c0ff895bc5216b138b906e2e733e9\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\5f8c0ff895bc5216b138b906e2e733e9\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\dd015f3498dc8db594f113763eb629fa\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\dd015f3498dc8db594f113763eb629fa\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.6.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\6b924ebbeca0d560c932075c2d8c9148\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\d1f1694c757f9086a7b53c997776821f\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\d1f1694c757f9086a7b53c997776821f\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\7d6dd249f110c6c908f1479edb2b0c9d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\7d6dd249f110c6c908f1479edb2b0c9d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\0c354d3d3677f3ad12642c22acb60249\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\0c354d3d3677f3ad12642c22acb60249\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\680500519a2a1e44e6cb41bb4bfc2a36\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\680500519a2a1e44e6cb41bb4bfc2a36\AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\087da12f86ccac2f80a6675fb47c4e2d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\087da12f86ccac2f80a6675fb47c4e2d\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\user\.gradle\caches\transforms-2\files-2.1\b2cf61ec6a9d77ac626fc6fc193abd73\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\user\.gradle\caches\transforms-2\files-2.1\b2cf61ec6a9d77ac626fc6fc193abd73\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\716221d3900dc3d114bcaed9a8476b5e\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\716221d3900dc3d114bcaed9a8476b5e\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\f259196f9c494214f55119a9f5df8480\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\f259196f9c494214f55119a9f5df8480\AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\82d51b8bab04da8e1361bb9fb3406389\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\user\.gradle\caches\transforms-2\files-2.1\82d51b8bab04da8e1361bb9fb3406389\AndroidManifest.xml:20:5-22:41
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\main\AndroidManifest.xml
+		INJECTED from E:\all\Abin\transfers-git\transferZ\android\app\src\debug\AndroidManifest.xml
+uses-library#androidx.window.extensions
+ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:25:9-27:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:26:13-54
+uses-library#androidx.window.sidecar
+ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:28:9-30:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:30:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\user\.gradle\caches\transforms-2\files-2.1\eb0b0fd4d7c7e414f40c065d42fc6e2d\AndroidManifest.xml:29:13-51

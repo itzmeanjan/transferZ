@@ -3,12 +3,12 @@ import 'dart:async' show Timer;
 
 class AdvertiseService {
   // this service writes on a MultiCast Address
-  String _targetIP;
-  int _targetPort;
-  String _multicastMessage;
+  String? _targetIP;
+  int? _targetPort;
+  String? _multicastMessage;
   FoundPeerCallBack _foundPeerCallBack;
-  RawDatagramSocket _rawDatagramSocket;
-  Timer _timer;
+  RawDatagramSocket? _rawDatagramSocket;
+  late Timer _timer;
   AdvertiseService(this._targetIP, this._targetPort, this._multicastMessage,
       this._foundPeerCallBack);
   advertise() {
@@ -17,10 +17,10 @@ class AdvertiseService {
       0,
     ).then((socket) {
       _rawDatagramSocket = socket;
-      _rawDatagramSocket.readEventsEnabled = true;
-      _rawDatagramSocket.listen((RawSocketEvent event) {
+      _rawDatagramSocket!.readEventsEnabled = true;
+      _rawDatagramSocket!.listen((RawSocketEvent event) {
         if (event == RawSocketEvent.read) {
-          Datagram datagram = _rawDatagramSocket.receive();
+          Datagram? datagram = _rawDatagramSocket!.receive();
           if (datagram != null)
             _foundPeerCallBack.foundPeer(
               datagram.address.address,
@@ -33,12 +33,12 @@ class AdvertiseService {
             seconds: 1,
           ), (timer) {
         if (timer.isActive)
-          _rawDatagramSocket.send(
-            _multicastMessage.codeUnits,
+          _rawDatagramSocket!.send(
+            _multicastMessage!.codeUnits,
             InternetAddress(
-              _targetIP,
+              _targetIP!,
             ), // sends data to multicast address
-            _targetPort,
+            _targetPort!,
           );
       });
     });
