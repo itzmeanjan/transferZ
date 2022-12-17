@@ -1,3 +1,7 @@
+> **Warning**
+
+**I'm stopping maintenance of this project !**
+
 ![image](/logo/logotype-horizontal.png)
 
 # transferz
